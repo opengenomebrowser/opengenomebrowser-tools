@@ -11,7 +11,7 @@ pip install git+https://github.com/opengenomebrowser/opengenomebrowser-tools.git
 ## Usage
 
 ```bash
-python import_genome.py --help
+import_genome --help
 ```
 
 ### Import genome files that require no renaming
@@ -48,7 +48,7 @@ This is how to import the resulting files:
 
 ```bash
 export GENOMIC_DATABASE=/path/to/database  # this directory contains the 'organisms' folder
-python import_genome.py --import_dir=/prokka/out/dir  # optional: add "--organism STRAIN --genome STRAIN.1" as sanity check
+import_genome --import_dir=/prokka/out/dir  # optional: add "--organism STRAIN --genome STRAIN.1" as sanity check
 ```
 
 Required files in `import_dir`:
@@ -81,7 +81,8 @@ database
         │	     ├── rest
         │	     │	 ├── PROKKA_08112021.err
         │	     │	 ├── PROKKA_08112021.fsa
-        │	     │	 ├── PROKKA_08112021.log
+        │
+        	     │	 ├── PROKKA_08112021.log
         │	     │	 ├── PROKKA_08112021.tbl
         │	     │	 ├── PROKKA_08112021.tsv
         │	     │	 ├── PROKKA_08112021.txt
@@ -99,7 +100,7 @@ database
 
 ```bash
 export GENOMIC_DATABASE=/path/to/database  # this directory contains the 'organisms' folder
-python import_genome.py --import_dir=/prokka/out/dir --organism STRAIN --genome STRAIN.1 --rename
+import_genome --import_dir=/prokka/out/dir --organism STRAIN --genome STRAIN.1 --rename
 ```
 
 The renaming is provided as-is, and was only tested on files produced by certain versions of prokka and PGAP. If there is an error, you must rename
@@ -153,26 +154,26 @@ This package contains a set of scripts to change the locus tags of genome-associ
 
 | Script                         | Purpose                                             |
 |--------------------------------|-----------------------------------------------------|
-| `rename_faa_fnn.py`            | FASTA files with locus tags (i.e. `STRAIN.1_00001`) |
-| `rename_genbank.py`            | GenBank files (tested with prokka and PGAP files)   |
-| `rename_gff.py`                | General feature format files                        |
-| `rename_eggnog.py`             | Eggnog `.emapper.annotations`-file                  |
-| `rename_custom_annotations.py` | OpenGenomeBrowser custom annotations file           |
+| `rename_faa_fnn`            | FASTA files with locus tags (i.e. `STRAIN.1_00001`) |
+| `rename_genbank`            | GenBank files (tested with prokka and PGAP files)   |
+| `rename_gff`                | General feature format files                        |
+| `rename_eggnog`             | Eggnog `.emapper.annotations`-file                  |
+| `rename_custom_annotations` | OpenGenomeBrowser custom annotations file           |
 
 The syntax is always the same:
 
 ```bash
-python rename_???.py \
+rename_??? \
   --file /path/to/input.file \
   --out /path/to/output.file \
   --new_locus_tag_prefix STRAIN.2 \
   --old_locus_tag_prefix STRAIN.1  # optional, good as sanity check
 ```
 
-There is another script, `reindex_assembly.py`, which changes the header of FASTA files. Usage:
+There is another script, `reindex_assembly`, which changes the header of FASTA files. Usage:
 
 ```bash
-python reindex_assembly.py \
+reindex_assembly \
   --file /path/to/input.file \
   --out /path/to/output.file \
   --prefix STRAIN_scf \
