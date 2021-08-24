@@ -1,0 +1,169 @@
+import os
+import re
+import json
+import logging
+from datetime import datetime
+from typing import Union, Callable
+
+from termcolor import colored
+from Bio import Entrez
+
+DATE_FORMAT = '%Y-%m-%d'
+TMPDIR = os.environ.get('TMPDIR', '/tmp')
+Entrez.email = os.environ.get('ENTREZ_EMAIL', 'opengenomebrowser@bioinformatics.unibe.ch')
+
+
+class GenomeFile:
+    def __init__(self, file: str):
+        assert os.path.isfile(file)
+        self.path = file
+
+    def __str__(self):
+        return f'{type(self).__name__}: {os.path.basename(self.path)}'
+
+    def metadata(self) -> (dict, dict):
+        return {}, {}
+
+    def detect_locus_tag_prefix(self) -> str:
+        raise NotImplementedError('This function must be overwritten.')
+
+    def validate_locus_tags(self, locus_tag_prefix: str = None):
+        raise NotImplementedError('This function must be overwritten.')
+
+    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = True) -> None:
+        raise NotImplementedError('This function must be overwritten.')
+
+    def _pre_rename_check(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None) -> str:
+        assert not os.path.isfile(out), f'Output file already exists! {out=}'
+
+        if old_locus_tag_prefix is None:
+            old_locus_tag_prefix = self.detect_locus_tag_prefix()
+        else:
+            assert old_locus_tag_prefix == self.detect_locus_tag_prefix(), f'Locus tag prefix does not match! {old_locus_tag_prefix=}'
+
+        assert new_locus_tag_prefix != old_locus_tag_prefix, f'Aborting: {new_locus_tag_prefix=} is the same as {old_locus_tag_prefix=}'
+
+        return old_locus_tag_prefix
+
+    def date(self) -> datetime:
+        return get_ctime(file=self.path)
+
+    def date_str(self) -> str:
+        """
+        :returns date in this format: "%Y-%m-%d"
+        """
+        return date_to_string(self.date())
+
+
+def query_yes_no(question: str, default: str = None, color='blue') -> bool:
+    '''Ask a yes/no question via raw_input() and return their answer.
+
+    'question' is a string that is presented to the user.
+    'default' is the presumed answer if the user just hits <Enter>.
+        It must be 'yes' (the default), 'no' or None (meaning
+        an answer is required of the user).
+
+    The 'answer' return value is True for 'yes' or False for 'no'.
+    '''
+    valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
+    if default is None:
+        prompt = '[y/n] '
+    elif default == 'yes':
+        prompt = '[Y/n] '
+    elif default == 'no':
+        prompt = '[y/N] '
+    else:
+        raise ValueError(F"invalid default answer: '{default}'")
+
+    while True:
+        print(colored(F'{question} {prompt}', color), end='')
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            print(colored("'Please respond with 'y' or 'n'.'", color))
+
+
+def query_int(question: str, error_msg='Please respond with an integer.', color='blue') -> int:
+    while True:
+        print(colored(question, color), end='')
+        choice = input()
+        if choice.isdigit():
+            return int(choice)
+        else:
+            print(colored(error_msg, color))
+
+
+def date_to_string(dt: datetime) -> str:
+    return dt.strftime('%Y-%m-%d')
+
+
+def get_ctime(file: str) -> datetime:
+    ctime = os.path.getctime(file)
+    dt = datetime.fromtimestamp(ctime)
+    return dt
+
+
+def is_valid_date(date: str) -> bool:
+    try:
+        datetime.strptime(date, DATE_FORMAT)
+        return True
+    except ValueError:
+        return False
+
+
+def _get_cache_json(cache_file: str) -> dict:
+    try:
+        with open(cache_file) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _set_cache_json(cache_file: str, content: Union[dict, list]) -> None:
+    try:
+        with open(cache_file, 'w') as f:
+            json.dump(content, f)
+    except Exception:
+        logging.warning(f'Failed to write {content=} to {cache_file=}')
+
+
+def entrez_organism_to_taxid(organism: str) -> int:
+    cache_file = os.path.join(TMPDIR, 'organism_to_taxid.json')
+
+    taxid_cache = _get_cache_json(cache_file)
+
+    if organism in taxid_cache:
+        logging.info(f'loaded taxid of {organism} from cache')
+        return taxid_cache[organism]
+    else:
+        logging.info(f'loading taxid of {organism} from Entrez')
+        handle = Entrez.esearch(db='Taxonomy', term=organism)
+        record = Entrez.read(handle)
+        assert 'ErrorList' not in record, f'Failed to extract taxid of {organism=} using Entrez!'
+        taxids = record["IdList"]
+        assert len(taxids) == 1 and taxids[0].isdigit(), f'Failed to extract taxid of {organism=} using Entrez!'
+        taxid = int(taxids[0])
+
+        taxid_cache[organism] = taxid
+        _set_cache_json(cache_file, taxid_cache)
+        return taxid
+
+
+def create_replace_function(replace_map: {str: str}) -> Callable:
+    '''
+    Returns a function that will replace all replace_map.keys with their corresponding replace_map.values
+
+    :param replace_map: dictionary that maps strings to be replaced to their desired replacement
+    :rtype: Callable
+    :return: function that takes str and returns str
+    '''
+    replace_map = {re.escape(k): v for k, v in replace_map.items()}  # escape key
+    pattern = re.compile("|".join(replace_map.keys()))
+
+    def replace_fn(text: str) -> str:
+        return pattern.sub(lambda m: replace_map[re.escape(m.group(0))], text)
+
+    return replace_fn

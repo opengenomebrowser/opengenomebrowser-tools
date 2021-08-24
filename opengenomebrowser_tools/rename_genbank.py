@@ -1,0 +1,174 @@
+from Bio import SeqIO, SeqRecord, SeqFeature
+from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function
+from .gbk_to_ffn import GbkToFfn
+
+
+class GenBankFile(GenomeFile):
+    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False) -> None:
+        old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
+
+        with open(self.path) as in_f:
+            content = in_f.read()
+
+        replace_fn = create_replace_function({
+            string.format(prefix=old_locus_tag_prefix): string.format(prefix=new_locus_tag_prefix)
+            for string in ['/locus_tag="{prefix}_', '/protein_id="extdb:{prefix}_', ':{prefix}_']
+        })
+
+        old_hash = hash(content)
+        content = replace_fn(content)
+        assert old_hash != hash(content), f'The content of {self.path=} has not changed!'
+
+        assert new_locus_tag_prefix in content, f'Something went wrong: did not replace anything!'
+
+        with open(out, 'w') as out_f:
+            out_f.write(content)
+
+        self.path = out
+
+        if validate:
+            self.validate_locus_tags(locus_tag_prefix=new_locus_tag_prefix)
+
+    def create_ffn(self, ffn: str):
+        GbkToFfn.convert(gbk=self.path, ffn=ffn, overwrite=False)
+
+    def validate_locus_tags(self, locus_tag_prefix: str = None):
+        if locus_tag_prefix is None:
+            locus_tag_prefix = self.detect_locus_tag_prefix()
+
+        with open(self.path) as f:
+            for rec in SeqIO.parse(f, "genbank"):
+                for feature in rec.features:
+                    locus_tag = feature.qualifiers.get('locus_tag')
+                    if locus_tag is not None:
+                        locus_tag = locus_tag[0]
+                        real_locus_tag_prefix, gene_id = locus_tag.rsplit('_', 1)
+                        assert real_locus_tag_prefix == locus_tag_prefix, \
+                            f'locus_tag_prefix in {self.path=} does not match. expected: {locus_tag_prefix} reality: {real_locus_tag_prefix}'
+                        assert gene_id.isdigit(), f'locus_tag in {self.path=} is malformed. expected: {locus_tag_prefix}_[0-9]+ reality: {locus_tag}'
+
+    def metadata(self) -> (dict, dict):
+        organism_data, genome_data = {}, {}
+
+        try:
+            organism_data['taxid'] = self.taxid(raise_error=True)
+        except Exception:
+            pass
+
+        rec, feature = self._get_first_gbk_rec_feature(gbk=self.path)
+        assert 'comment' in rec.annotations, f'Could not determine annotation information from {self.path=}'
+        comment = rec.annotations['comment']
+        if 'prokka' in comment:
+            genome_data.update(
+                cds_tool='prokka',
+                cds_tool_date=date_to_string(datetime.strptime(rec.annotations['date'], '%d-%b-%Y')),
+                cds_tool_version=comment.split('prokka ')[-1].split(' ')[0]
+            )
+        elif 'PGAP' in comment:
+            pgap_comment = rec.annotations['structured_comment']['Genome-Annotation-Data']
+            genome_data.update(
+                cds_tool='PGAP',
+                cds_tool_date=date_to_string(datetime.strptime(pgap_comment['Annotation Date'], '%m/%d/%Y %H:%M:%S')),
+                cds_tool_version=pgap_comment['Annotation Software revision']
+            )
+        else:
+            raise AssertionError(f'Failed to discover annotation information from {self.path=}')
+
+        # get  BioProject / BioSample metadata
+        if hasattr(rec, 'dbxrefs'):
+            for dbxref in rec.dbxrefs:
+                if dbxref.startswith('BioProject:'):
+                    genome_data['bioproject_accession'] = dbxref.removeprefix('BioProject:')
+                if dbxref.startswith('BioSample:'):
+                    genome_data['biosample_accession'] = dbxref.removeprefix('BioSample:')
+
+        return organism_data, genome_data
+
+    def taxid(self, raise_error=True, sample_name: str = None) -> int:
+        rec, feature = self._get_first_gbk_rec_feature(gbk=self.path)
+
+        # PGAP files contain taxid in first feature (db_xref qualifier)
+        db_xref = feature.qualifiers.get('db_xref')
+        if type(db_xref) is list and len(db_xref) == 1:
+            taxid = db_xref[0].removeprefix('taxon:')
+            assert taxid.isdigit(), f'Failed to extract taxid from db_xref in {self.path=}'
+            return int(taxid)
+
+        # prokka files contain organism name, which can be turned into taxid using Entrez
+        organism = feature.qualifiers.get('organism')
+        if type(organism) is list and len(organism) == 1:
+            return entrez_organism_to_taxid(organism[0])
+
+        # ask for input or raise error
+        if not raise_error:
+            taxid = query_int(
+                question=f'What is the taxid of {sample_name if sample_name else self.path}?',
+                error_msg=f'The response must be an integer. Hint: taxid=1427524 is "mixed sample".'
+            )
+            assert taxid != 0, f'0 is not a valid taxid.'
+            return taxid
+        else:
+            raise AssertionError(f'Failed to extract taxid from {self.path=}')
+
+    def detect_locus_tag_prefix(self) -> str:
+        strain, locus_tag_prefix = self.detect_strain_locus_tag_prefix()
+        return locus_tag_prefix
+
+    def detect_strain_locus_tag_prefix(self) -> (str, str):
+        strain, locus_tag = None, None
+        with open(self.path) as f:
+            for rec in SeqIO.parse(f, "genbank"):
+                for feature in rec.features:
+                    if strain is None:
+                        strain = feature.qualifiers.get('strain')
+                    if locus_tag is None:
+                        locus_tag = feature.qualifiers.get('locus_tag')
+                    if strain is not None and locus_tag is not None:
+                        break
+
+        assert type(locus_tag) is list, f'Could not read genome from .gbk file! {locus_tag=}'
+        assert type(strain) is list, f'Could not read organism from .gbk file! {strain=}'
+
+        locus_tag_prefix = locus_tag[0].rsplit('_', 1)[0]
+        strain = strain[0]
+        assert type(locus_tag_prefix) is str and type(strain) is str
+        return strain, locus_tag_prefix
+
+    @staticmethod
+    def _get_first_gbk_rec_feature(gbk: str) -> (SeqRecord, SeqFeature):
+        with open(gbk) as f:
+            for rec in SeqIO.parse(f, "genbank"):
+                for feature in rec.features:
+                    return rec, feature
+        raise AssertionError(f'Failed to get rec and feature from {gbk=}')
+
+
+def rename_genbank(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False):
+    """
+    Change the locus tags in a GenBank file
+
+    :param file: input file
+    :param out: output file
+    :param new_locus_tag_prefix: desired locus tag
+    :param old_locus_tag_prefix: locus tag to replace
+    :param validate: if true, perform sanity check
+    """
+
+    GenBankFile(
+        file=file
+    ).rename(
+        out=out,
+        new_locus_tag_prefix=new_locus_tag_prefix,
+        old_locus_tag_prefix=old_locus_tag_prefix,
+        validate=validate
+    )
+
+
+def main():
+    import fire
+
+    fire.Fire(rename_genbank)
+
+
+if __name__ == '__main__':
+    main()
