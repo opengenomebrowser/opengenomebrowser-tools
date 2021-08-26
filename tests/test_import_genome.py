@@ -76,6 +76,13 @@ class Test(TestCase):
         runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
         runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.2', rename=True)
 
+    def test_runner_advanced_config(self):
+        runner(
+            database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good',
+            import_settings=f'{ROOT}/test-data/alternative-config.json',
+            organism='STRAIN', genome='STRAIN.1'
+        )
+
     def setUp(self) -> None:
         clean_up()
 

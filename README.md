@@ -49,8 +49,8 @@ import_genome --import_dir=/prokka/out/dir --organism STRAIN --genome STRAIN.1 -
 ```
 
 The renaming is provided as-is, and was only tested on files produced by certain versions of prokka and PGAP. If there is an error, you must rename
-the files manually (with or without the help of my [renaming scripts](#rename-single-files)) and then import them as described in the previous
-section.
+the files manually (with or without the help of my [renaming scripts](#rename_-rename-locus-tags-in-genome-associated-files)) and then import them as
+described in the previous section.
 
 ### `import_genome`: Required files
 
@@ -71,7 +71,8 @@ Optional files:
 - `genome.json`: content will be added to final `genome.json`, may be as simple as `{"restricted": true}`
 - `organism.json`: content will be added to final `organism.json`, may be as simple as `{"assembly_tool": "PGAP"}`
 
-This will result in the following result:
+<details>
+  <summary>This will result in the following result:</summary>
 
 ```text
 #### folder structure ####
@@ -99,9 +100,14 @@ database
         └── organism.json
 ```
 
-### `import_genome`: How to run prokka to get correct locus tags
+</details>
 
-Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, this is how to run prokka:
+### `import_genome`: How to run annotation software to get correct locus tags
+
+- **Prokka**
+
+<details>
+  <summary>Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, this is how to run prokka:</summary>
 
 ```bash
 prokka \
@@ -112,9 +118,12 @@ prokka \
   assembly.fasta
 ```
 
-### `import_genome`: How to run PGAP to get correct locus tags
+</details>
 
-These are the lines in PGAPs `submol.yaml` that are relevant to this script:
+- **PGAP**
+
+<details>
+  <summary>These are the lines in PGAPs `submol.yaml` that are relevant to this script:</summary>
 
 ```yaml
 organism:
@@ -128,6 +137,8 @@ publications: # Optional. If set, this script can automatically add it to the li
       pmid: 16397293
 ```
 
+</details>
+
 ### `import_genome`: Modify where files are moved to
 
 It is possible to change where files end up in the folder structure. The behaviour is determined by a config file in json format that can be specified
@@ -137,7 +148,8 @@ with the --import_settings parameter or the OGB_IMPORT_SETTINGS environment vari
 export OGB_IMPORT_SETTINGS=/path/to/import_config.json
 ```
 
-This is the default setting:
+<details>
+  <summary>These are the default settings:</summary>
 
 ```text
 {
@@ -160,8 +172,80 @@ This is the default setting:
                                                        #   will end up in .../STRAIN.1/rest/
     }
 }
-
 ```
+
+</details>
+
+<details>
+  <summary>This is an example of an alternative configuration:</summary>
+
+```text
+{
+    "organism_template": {},
+    "genome_template": {},
+    "path_transformer": {
+        
+        # raw reads
+        ".*fastqc?\\..*": "0_raw_reads/{original_path}",
+        
+        # assembly
+        ".*\\.fna": "1_assembly/{genome}.{suffix}",
+        
+        # coding sequence (CDS) calling
+        ".*\\.faa": "2_cds/{genome}.{suffix}",
+        ".*\\.gbk": "2_cds/{genome}.{suffix}",
+        ".*\\.gff": "2_cds/{genome}.{suffix}",
+        ".*\\.ffn": "2_cds/{genome}.{suffix}",
+        ".*\\.sqn": "2_cds/{genome}.{suffix}",
+        "PROKKA_.*": "2_cds/{original_path}",
+        
+        # functional annotations
+        ".*\\.emapper.annotations": "3_annotation/{genome}.eggnog",
+        ".*\\.[A-Z]{2}": "3_annotation/{genome}.{suffix}",
+        ".*_busco\\.txt": "3_annotation/{original_path}",
+        
+        # special files
+        "genome.md": "genome.md",
+        "organism.md": "../../organism.md",
+        "genome.json": null,
+        "organism.json": null,
+        
+        # rest
+        ".*": "rest/{original_path}"
+    }
+}
+```
+
+This is what the result looks like:
+
+```text
+#### folder structure ####
+database
+└── organisms
+    └── STRAIN
+       ├── genomes
+       │     └── STRAIN.1
+       │         ├── 1_assembly
+       │         │     └── STRAIN.1.fna
+       │         ├── 2_cds
+       │         │     ├── PROKKA_08112021.err
+       │         │     ├── PROKKA_08112021.fsa
+       │         │     ├── PROKKA_08112021.log
+       │         │     ├── PROKKA_08112021.tbl
+       │         │     ├── PROKKA_08112021.tsv
+       │         │     ├── PROKKA_08112021.txt
+       │         │     ├── STRAIN.1.faa
+       │         │     ├── STRAIN.1.ffn
+       │         │     ├── STRAIN.1.gbk
+       │         │     ├── STRAIN.1.gff
+       │         │     └── STRAIN.1.sqn
+       │         ├── 3_annotation
+       │         │     └── short_summary_busco.txt
+       │         └── genome.json
+       └── organism.json
+```
+
+</details>
 
 ### `import_genome`: Add custom metadata
 
