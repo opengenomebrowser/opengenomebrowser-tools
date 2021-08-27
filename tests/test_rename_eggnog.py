@@ -21,7 +21,7 @@ class Test(TestCase):
     def test_detect_locus_tag_prefix(self):
         for eggnog in eggnogs:
             locus_tag_prefix = EggnogFile(file=eggnog).detect_locus_tag_prefix()
-            self.assertEqual(locus_tag_prefix, 'tmp')
+            self.assertEqual(locus_tag_prefix, 'tmp_')
 
     def test_parse_eggnog_date(self):
         for eggnog in eggnogs:
@@ -37,17 +37,17 @@ class Test(TestCase):
         for eggnog in eggnogs:
             ef = EggnogFile(file=eggnog)
             ef.validate_locus_tags(locus_tag_prefix=None)
-            ef.validate_locus_tags(locus_tag_prefix='tmp')
+            ef.validate_locus_tags(locus_tag_prefix='tmp_')
             with self.assertRaises(AssertionError):
-                ef.validate_locus_tags(locus_tag_prefix='xxx')
+                ef.validate_locus_tags(locus_tag_prefix='xxx_')
 
     def test_rename(self):
         for eggnog in eggnogs:
             cleanup()
-            EggnogFile(file=eggnog).rename(new_locus_tag_prefix='YOLO', out=TMPFILE, validate=True)
+            EggnogFile(file=eggnog).rename(new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True)
             with open(TMPFILE) as f:
                 content = f.read()
-            count = content.count('YOLO')
+            count = content.count('YOLO_')
             self.assertNotIn(member='tmp', container=content)
             self.assertGreater(a=count, b=400)
 

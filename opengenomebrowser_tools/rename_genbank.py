@@ -1,6 +1,6 @@
 from Bio import SeqIO, SeqRecord, SeqFeature
-from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function
-from .gbk_to_ffn import GbkToFfn
+from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function, split_locus_tag
+from .genbank_to_fasta import GenBankToFasta
 
 
 class GenBankFile(GenomeFile):
@@ -12,7 +12,7 @@ class GenBankFile(GenomeFile):
 
         replace_fn = create_replace_function({
             string.format(prefix=old_locus_tag_prefix): string.format(prefix=new_locus_tag_prefix)
-            for string in ['/locus_tag="{prefix}_', '/protein_id="extdb:{prefix}_', ':{prefix}_']
+            for string in ['/locus_tag="{prefix}', '/protein_id="extdb:{prefix}', ':{prefix}']
         })
 
         old_hash = hash(content)
@@ -30,7 +30,10 @@ class GenBankFile(GenomeFile):
             self.validate_locus_tags(locus_tag_prefix=new_locus_tag_prefix)
 
     def create_ffn(self, ffn: str):
-        GbkToFfn.convert(gbk=self.path, ffn=ffn, overwrite=False)
+        GenBankToFasta.convert(gbk=self.path, out=ffn, format='ffn')
+
+    def create_faa(self, faa: str):
+        GenBankToFasta.convert(gbk=self.path, out=faa, format='faa')
 
     def validate_locus_tags(self, locus_tag_prefix: str = None):
         if locus_tag_prefix is None:
@@ -42,7 +45,7 @@ class GenBankFile(GenomeFile):
                     locus_tag = feature.qualifiers.get('locus_tag')
                     if locus_tag is not None:
                         locus_tag = locus_tag[0]
-                        real_locus_tag_prefix, gene_id = locus_tag.rsplit('_', 1)
+                        real_locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
                         assert real_locus_tag_prefix == locus_tag_prefix, \
                             f'locus_tag_prefix in {self.path=} does not match. expected: {locus_tag_prefix} reality: {real_locus_tag_prefix}'
                         assert gene_id.isdigit(), f'locus_tag in {self.path=} is malformed. expected: {locus_tag_prefix}_[0-9]+ reality: {locus_tag}'
@@ -129,7 +132,7 @@ class GenBankFile(GenomeFile):
         assert type(locus_tag) is list, f'Could not read genome from .gbk file! {locus_tag=}'
         assert type(strain) is list, f'Could not read organism from .gbk file! {strain=}'
 
-        locus_tag_prefix = locus_tag[0].rsplit('_', 1)[0]
+        locus_tag_prefix, gene_id = split_locus_tag(locus_tag[0])
         strain = strain[0]
         assert type(locus_tag_prefix) is str and type(strain) is str
         return strain, locus_tag_prefix

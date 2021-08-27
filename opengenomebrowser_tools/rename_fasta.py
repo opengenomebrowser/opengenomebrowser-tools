@@ -1,4 +1,4 @@
-from .utils import GenomeFile
+from .utils import GenomeFile, split_locus_tag
 
 
 class FastaFile(GenomeFile):
@@ -8,13 +8,13 @@ class FastaFile(GenomeFile):
         with open(self.path) as in_f:
             content = in_f.readlines()
 
-        old = f'{old_locus_tag_prefix}_'
-        new = f'{new_locus_tag_prefix}_'
-
         def rename_line(line: str):
             if line.startswith('>'):
-                assert old in line, f'Fasta header does not contain old_locus_tag_prefix! {old_locus_tag_prefix=}, {line=}, fasta={self.path}'
-                return line.replace(old, new, 1).replace(f'hypothetical protein {old}', f'hypothetical protein {new}')
+                assert old_locus_tag_prefix in line, \
+                    f'Fasta header does not contain old_locus_tag_prefix! {old_locus_tag_prefix=}, {line=}, fasta={self.path}'
+                return line \
+                    .replace(old_locus_tag_prefix, new_locus_tag_prefix, 1) \
+                    .replace(f'hypothetical protein {old_locus_tag_prefix}', f'hypothetical protein {new_locus_tag_prefix}')
             else:
                 return line
 
@@ -54,10 +54,9 @@ class FastaFile(GenomeFile):
         error_message = f'This fasta file does not start with gene identifiers (>gene-identifier_00001)! {header=}'
         assert header.startswith('>'), error_message
         assert '_' in header, error_message
-        locus_tag_prefix, rest = header[1:].split('_', 1)
-        locus_tag_prefix = locus_tag_prefix.rsplit('|', 1)[-1]
+        locus_tag = header[1:].split(' ', 1)[0]
+        locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
         assert ' ' not in locus_tag_prefix and len(locus_tag_prefix) > 0, error_message
-        gene_id = rest.rstrip().split(' ', 1)[0]
         assert gene_id.isdigit(), error_message
         return locus_tag_prefix, gene_id
 

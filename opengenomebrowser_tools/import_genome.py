@@ -107,11 +107,11 @@ class OgbImporter:
 
         files = os.listdir(import_dir)
         self.fna = self.find_file(files, '.fna', FastaFile)  # assembly
-        self.faa = self.find_file(files, '.faa', FastaFile)  # protein
         self.gbk = self.find_file(files, '.gbk', GenBankFile)  # genbank
+        self.ffn = self.find_or_create_ffn(files=files)  # nucleic acid sequences
+        self.faa = self.find_or_create_faa(files=files)  # protein
         self.gff = self.find_file(files, '.gff', GffFile)  # general feature format
         self.sqn = self.find_file(files, '.sqn', GenomeFile, raise_error=False)  # GenBank submission file
-        self.ffn = self.find_or_create_ffn(files=files)  # nucleic acid sequences
         self.custom_annotations = self.find_custom_annotations(files)  # custom annotation files / eggnog files
 
         self.genome_md = self.get_genome_file(files, 'genome.md', GenomeFile, raise_error=False)
@@ -131,7 +131,9 @@ class OgbImporter:
     def __repr__(self):
         return f'{self.organism}::{self.genome}'
 
-    def _append_new_path_to_file(self, file: GenomeFile) -> str:
+    def _append_new_path_to_file(self, file: GenomeFile) -> Optional[str]:
+        if file is None:
+            return None
         new_path = self.get_new_path(original_path=file.original_path)
         file.new_path = new_path
         file.target_path = os.path.join(self.target_dir, file.new_path)
@@ -256,7 +258,7 @@ class OgbImporter:
 
     def detect_organism_genome(self) -> (str, str):
         strain, locus_tag_prefix = self.gbk.detect_strain_locus_tag_prefix()
-        organism, genome = strain, locus_tag_prefix
+        organism, genome = strain, locus_tag_prefix.rstrip('_')
         logging.info(f'autodetected from gbk: {organism=} {genome=}')
         return organism, genome
 
@@ -269,13 +271,23 @@ class OgbImporter:
             self.gbk.create_ffn(ffn=self.ffn)
             return self.find_file(os.listdir(self.import_dir), '.ffn', FastaFile)
 
+    def find_or_create_faa(self, files: [str]) -> GenomeFile:
+        try:
+            return self.find_file(files, '.faa', FastaFile)
+        except FileNotFoundError:
+            self.faa = self.gbk.path[:-3] + 'faa'
+            logging.info('Creating .faa based on .gbk...')
+            self.gbk.create_faa(faa=self.faa)
+            return self.find_file(os.listdir(self.import_dir), '.ffn', FastaFile)
+
     def check_files(self) -> None:
-        self.gbk.validate_locus_tags(locus_tag_prefix=self.genome)
-        self.gff.validate_locus_tags(locus_tag_prefix=self.genome)
-        self.faa.validate_locus_tags(locus_tag_prefix=self.genome)
-        self.ffn.validate_locus_tags(locus_tag_prefix=self.genome)
+        locus_tag_prefix = f'{self.genome}_'
+        self.gbk.validate_locus_tags(locus_tag_prefix=locus_tag_prefix)
+        self.gff.validate_locus_tags(locus_tag_prefix=locus_tag_prefix)
+        self.faa.validate_locus_tags(locus_tag_prefix=locus_tag_prefix)
+        self.ffn.validate_locus_tags(locus_tag_prefix=locus_tag_prefix)
         for ca in self.custom_annotations:
-            ca.validate_locus_tags(locus_tag_prefix=self.genome)
+            ca.validate_locus_tags(locus_tag_prefix=locus_tag_prefix)
 
     def _get_temp(self, file: str) -> str:
         return os.path.join(self.tempdir.name, os.path.basename(file))
@@ -309,7 +321,7 @@ class OgbImporter:
 
         for file in [self.fna, self.faa, self.gbk, self.gff, self.sqn, self.ffn, *self.custom_annotations]:
             if file:
-                logging.info(f'{file.original_path} >>K>> {file.new_path}')
+                logging.info(f'{file.original_path} >>copy key file>> {file.new_path}')
                 copy(src=file.path, dst=file.target_path)
 
         for original_path in self.rest_files:
@@ -319,7 +331,7 @@ class OgbImporter:
                 logging.info(f'not copying: {original_path}')
                 continue
             target_path = os.path.join(self.target_dir, new_path)
-            logging.info(f'{original_path} >>K>> {new_path}')
+            logging.info(f'{original_path} >>copy rest file>> {new_path}')
 
             copy(src=path, dst=target_path)
 
@@ -345,13 +357,12 @@ class OgbImporter:
                 raise e
             else:
                 return alternative
-        genome_file = file_class(os.path.join(self.import_dir, file))
-        genome_file.original_path = file
+        genome_file = file_class(os.path.join(self.import_dir, file), original_path=file)
         return genome_file
 
     def find_file(self, files: [str], suffix: str, file_class: type,
-                  raise_error: bool = True, alternative=None, remove: bool = True) -> Union[
-        GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]:
+                  raise_error: bool = True, alternative=None, remove: bool = True
+                  ) -> Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]:
         matches = [f for f in files if f.endswith(suffix)]
         if len(matches) == 0:
             if raise_error:
@@ -364,8 +375,7 @@ class OgbImporter:
         if remove:
             files.remove(file)
 
-        genome_file = file_class(os.path.join(self.import_dir, file))
-        genome_file.original_path = file
+        genome_file = file_class(os.path.join(self.import_dir, file), original_path=file)
         return genome_file
 
     def find_custom_annotations(self, files: [str]) -> [Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]]:
@@ -414,7 +424,7 @@ def runner(
     ogb_importer = OgbImporter(database_dir=database_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
 
     if rename:
-        ogb_importer.rename_all(new_locus_tag_prefix=ogb_importer.genome)
+        ogb_importer.rename_all(new_locus_tag_prefix=f'{ogb_importer.genome}_')
 
     ogb_importer.gather_metadata()
 

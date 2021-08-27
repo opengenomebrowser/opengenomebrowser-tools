@@ -83,6 +83,9 @@ class Test(TestCase):
             organism='STRAIN', genome='STRAIN.1'
         )
 
+    def test_runner_ncbi(self):
+        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/ncbi-convert', organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
+
     def setUp(self) -> None:
         clean_up()
 

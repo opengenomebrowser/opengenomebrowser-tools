@@ -24,7 +24,7 @@ class Test(TestCase):
         for gbk in gbks:
             strain, locus_tag_prefix = GenBankFile(gbk).detect_strain_locus_tag_prefix()
             self.assertIn(member=strain, container=['replaceme', 'STRAIN'])
-            self.assertIn(member=locus_tag_prefix, container=['tmp', 'STRAIN.1'])
+            self.assertIn(member=locus_tag_prefix, container=['tmp_', 'STRAIN.1_'])
 
     def test_get_taxid(self):
         for gbk in gbks:
@@ -33,12 +33,12 @@ class Test(TestCase):
     def test_rename(self):
         for gbk in gbks:
             cleanup()
-            GenBankFile(gbk).rename(new_locus_tag_prefix='YOLO', out=TMPFILE, validate=True)
+            GenBankFile(gbk).rename(new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True)
             with open(TMPFILE) as f:
                 content = f.read()
-            count = content.count('YOLO')
-            self.assertNotIn(member='tmp', container=content)
-            self.assertNotIn(member='STRAIN.1', container=content)
+            count = content.count('YOLO_')
+            self.assertNotIn(member='tmp_', container=content)
+            self.assertNotIn(member='STRAIN.1_', container=content)
             self.assertGreater(a=count, b=1000)
 
     def test_get_metadata(self):

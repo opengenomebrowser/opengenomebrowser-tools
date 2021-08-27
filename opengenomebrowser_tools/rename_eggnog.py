@@ -1,7 +1,7 @@
 from datetime import datetime
 from functools import cached_property
 
-from .utils import GenomeFile
+from .utils import GenomeFile, split_locus_tag
 
 EGGNOG_VERSIONS = {
     'eggnog-2.1.2':
@@ -18,19 +18,15 @@ class EggnogFile(GenomeFile):
         with open(self.path) as in_f:
             content = in_f.readlines()
 
-        old = f'{old_locus_tag_prefix}_'
-        new = f'{new_locus_tag_prefix}_'
-
         def rename_line(line: str):
             if line.startswith('#'):
                 return line
 
             locus_tag, rest = line.split('\t', 1)
-            locus_tag_prefix, gene_id = locus_tag.rsplit('|', 1)[-1].rsplit('_', 1)
+            locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
             assert locus_tag_prefix == old_locus_tag_prefix, f'Eggnog line does not contain old_locus_tag_prefix!' \
                                                              f'{old_locus_tag_prefix=}, {line=}, {self.path=}'
-            assert gene_id.isdigit(), f'Eggnog line contains invalid gene_id. {gene_id=}, {line=}, {self.path=}'
-            return locus_tag.replace(old, new, 1) + '\t' + rest
+            return locus_tag.replace(old_locus_tag_prefix, new_locus_tag_prefix, 1) + '\t' + rest
 
         content = [rename_line(line) for line in content]
 
@@ -48,8 +44,8 @@ class EggnogFile(GenomeFile):
                 if line.startswith('#'):
                     continue
 
-                locus_tag, _ = line.split('\t', 1)
-                locus_tag_prefix, gene_id = locus_tag.rsplit('|', 1)[-1].rsplit('_', 1)
+                locus_tag = line.split('\t', 1)[0]
+                locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
                 return locus_tag_prefix
 
         raise KeyError(f'Could not extract locus_tag from {self.path=}, it does not appear to contain annotations!')
@@ -89,8 +85,8 @@ class EggnogFile(GenomeFile):
                 if line.startswith('#'):
                     continue
 
-                locus_tag, _ = line.split('\t', 1)
-                real_locus_tag_prefix, gene_id = locus_tag.rsplit('|', 1)[-1].rsplit('_', 1)
+                locus_tag = line.split('\t', 1)[0]
+                real_locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
 
                 assert real_locus_tag_prefix == locus_tag_prefix, \
                     f'locus_tag_prefix in {self.path=} does not match. expected: {locus_tag_prefix} reality: {real_locus_tag_prefix}'

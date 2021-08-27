@@ -1,4 +1,4 @@
-from .utils import GenomeFile, create_replace_function
+from .utils import GenomeFile, create_replace_function, split_locus_tag
 
 
 class NoLocusTagInGffLine(KeyError):
@@ -14,7 +14,7 @@ class GffFile(GenomeFile):
 
         replace_fn = create_replace_function({
             string.format(prefix=old_locus_tag_prefix): string.format(prefix=new_locus_tag_prefix)
-            for string in ['-{prefix}_', '={prefix}_', ':{prefix}_']
+            for string in ['-{prefix}', '={prefix}', ':{prefix}']
         })
 
         old_hash = hash(content)
@@ -70,9 +70,8 @@ class GffFile(GenomeFile):
         if not 'locus_tag' in data:
             raise NoLocusTagInGffLine(f'gff data contains no locus_tag! {line}')
         locus_tag = data['locus_tag']
-        locus_tag_prefix, gene_id = locus_tag.rsplit('_', 1)
+        locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
         assert ' ' not in locus_tag_prefix, f'The locus_tag may not contain blanks! {locus_tag=}'
-        assert gene_id.isdigit(), f'locus_tag in gff {line=} is malformed. expected: {locus_tag_prefix}_[0-9]+ reality: {locus_tag}'
         return locus_tag_prefix, gene_id
 
 

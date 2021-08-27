@@ -13,9 +13,9 @@ def reindex_assembly(file: str, out: str, prefix: str, leading_zeroes: int = Non
     assert not os.path.isfile(out), f'Output file already exists! {out=}'
 
     if type(leading_zeroes) is int and leading_zeroes > 1:
-        format = lambda c: f'>{prefix}_{str(c).zfill(leading_zeroes)}\n'
+        format = lambda c: f'>{prefix}{str(c).zfill(leading_zeroes)}\n'
     else:
-        format = lambda c: f'>{prefix}_{c}\n'
+        format = lambda c: f'>{prefix}{c}\n'
 
     counter = 0
     with open(file) as in_f, open(out, 'w') as out_f:

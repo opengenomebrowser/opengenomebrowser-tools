@@ -14,16 +14,16 @@ pip install git+https://github.com/opengenomebrowser/opengenomebrowser-tools.git
 
 This package contains the following scripts
 
-| Script                      | Purpose                                                                |
-|-----------------------------|------------------------------------------------------------------------|
+| Script                      | Purpose                                                                  |
+|-----------------------------|--------------------------------------------------------------------------|
 | `import_genome`             | Import genome-associated files into OpenGenomeBrowser folder structure, automatically generate metadata files |
-| `rename_fasta`              | Change locus tags of FASTA files                                       |
-| `rename_genbank`            | Change locus tags of GenBank files (tested with prokka and PGAP files) |
-| `rename_gff`                | Change locus tags of gff (general feature format) files                |
-| `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)             |
-| `rename_custom_annotations` | Change locus tags of custom annotations files                          |
-| `reindex_assembly`          | Change FASTA headers of assembliy files                                |
-| `gbk_to_ffn`                | Convert GenBank (`.gbk`) to nucleotide FASTA (`.ffn`)                  |
+| `rename_fasta`              | Change locus tags of FASTA files                                         |
+| `rename_genbank`            | Change locus tags of GenBank files (tested with prokka and PGAP files)   |
+| `rename_gff`                | Change locus tags of gff (general feature format) files                  |
+| `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)               |
+| `rename_custom_annotations` | Change locus tags of custom annotations files                            |
+| `reindex_assembly`          | Change FASTA headers of assembliy files                                  |
+| `genbank_to_fasta`          | Convert GenBank (`.gbk`) to nucleotide- or protein FASTA (`.ffn`/`.faa`) |
 
 All of these scripts have help functions, for example:
 
@@ -57,12 +57,12 @@ described in the previous section.
 These files need to be in `import_dir`:
 
 - `.fna`: assembly (FASTA)
-- `.faa`: protein sequences (FASTA)
 - `.gbk`: GenBank file
 - `.gff`: General feature format file
 
 Optional files:
 
+- `.faa`: protein sequences (FASTA). If non-existent, it will automatically be generated from the `.gbk` file
 - `.ffn`: nucleotides file (FASTA). If non-existent, it will automatically be generated from the `.gbk` file
 - `.sqn`: required for submission to GenBank, not really used by OpenGenomeBrowser
 - `.emapper.annotations`: Eggnog annotation file
@@ -79,25 +79,24 @@ Optional files:
 database
 └── organisms
     └── STRAIN
-        ├── genomes
-        │    └── STRAIN.1
-        │	     ├── genome.json
-        │	     ├── rest
-        │	     │	 ├── PROKKA_08112021.err
-        │	     │	 ├── PROKKA_08112021.fsa
-        │
-        	     │	 ├── PROKKA_08112021.log
-        │	     │	 ├── PROKKA_08112021.tbl
-        │	     │	 ├── PROKKA_08112021.tsv
-        │	     │	 ├── PROKKA_08112021.txt
-        │	     │	 └── short_summary.specific.lactobacillales_odb10.FAM3228-i1-1_busco.txt
-        │	     ├── STRAIN.1.faa
-        │	     ├── STRAIN.1.ffn
-        │	     ├── STRAIN.1.fna
-        │	     ├── STRAIN.1.gbk
-        │	     ├── STRAIN.1.gff
-        │	     └── STRAIN.1.sqn
-        └── organism.json
+        ├── organism.json
+        └── genomes
+             └── STRAIN.1
+         	     ├── genome.json
+         	     ├── STRAIN.1.faa
+         	     ├── STRAIN.1.ffn
+         	     ├── STRAIN.1.fna
+         	     ├── STRAIN.1.gbk
+         	     ├── STRAIN.1.gff
+         	     ├── STRAIN.1.sqn
+         	     └── rest
+         	      	 ├── PROKKA_08112021.err
+         	      	 ├── PROKKA_08112021.fsa
+        	      	 ├── PROKKA_08112021.log
+         	      	 ├── PROKKA_08112021.tbl
+         	      	 ├── PROKKA_08112021.tsv
+         	      	 ├── PROKKA_08112021.txt
+         	      	 └── short_summary.specific.lactobacillales_odb10.FAM3228-i1-1_busco.txt
 ```
 
 </details>
@@ -223,26 +222,26 @@ This is what the result looks like:
 database
 └── organisms
     └── STRAIN
-       ├── genomes
-       │     └── STRAIN.1
-       │         ├── 1_assembly
-       │         │     └── STRAIN.1.fna
-       │         ├── 2_cds
-       │         │     ├── PROKKA_08112021.err
-       │         │     ├── PROKKA_08112021.fsa
-       │         │     ├── PROKKA_08112021.log
-       │         │     ├── PROKKA_08112021.tbl
-       │         │     ├── PROKKA_08112021.tsv
-       │         │     ├── PROKKA_08112021.txt
-       │         │     ├── STRAIN.1.faa
-       │         │     ├── STRAIN.1.ffn
-       │         │     ├── STRAIN.1.gbk
-       │         │     ├── STRAIN.1.gff
-       │         │     └── STRAIN.1.sqn
-       │         ├── 3_annotation
-       │         │     └── short_summary_busco.txt
-       │         └── genome.json
-       └── organism.json
+       ├── organism.json
+       └── genomes
+             └── STRAIN.1
+                 ├── genome.json
+                 ├── 1_assembly
+                 │     └── STRAIN.1.fna
+                 ├── 2_cds
+                 │     ├── PROKKA_08112021.err
+                 │     ├── PROKKA_08112021.fsa
+                 │     ├── PROKKA_08112021.log
+                 │     ├── PROKKA_08112021.tbl
+                 │     ├── PROKKA_08112021.tsv
+                 │     ├── PROKKA_08112021.txt
+                 │     ├── STRAIN.1.faa
+                 │     ├── STRAIN.1.ffn
+                 │     ├── STRAIN.1.gbk
+                 │     ├── STRAIN.1.gff
+                 │     └── STRAIN.1.sqn
+                 └── 3_annotation
+                       └── short_summary_busco.txt
 ```
 
 </details>
@@ -281,12 +280,13 @@ reindex_assembly \
 
 This would transform a FASTA header like this `>anything here` into `>STRAIN_scf_00001`.
 
-## `gbk_to_ffn`: Convert GenBank to nucleotide FASTA
+## `genbank_to_fasta`: Convert GenBank to nucleotide FASTA
 
 Usage:
 
 ```bash
 gbk_to_ffn \
   --gbk /path/to/input.gbk \
-  --ffn /path/to/output.ffn
+  --out /path/to/output.xxx \
+  --format faa  # or ffn
 ```

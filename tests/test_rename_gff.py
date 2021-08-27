@@ -23,15 +23,15 @@ class Test(TestCase):
     def test_detect_locus_tag_prefix(self):
         for gff in gffs:
             locus_tag_prefix = GffFile(gff).detect_locus_tag_prefix()
-            self.assertIn(member=locus_tag_prefix, container=['tmp', 'STRAIN.1'])
+            self.assertIn(member=locus_tag_prefix, container=['tmp_', 'STRAIN.1_'])
 
     def test_rename(self):
         for gff in gffs:
             cleanup()
-            GffFile(gff).rename(new_locus_tag_prefix='YOLO', out=TMPFILE, validate=True)
+            GffFile(gff).rename(new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True)
             with open(TMPFILE) as f:
                 content = f.read()
-            count = content.count('YOLO')
+            count = content.count('YOLO_')
             self.assertNotIn(member='tmp', container=content, msg=f'Found "tmp" in renamed {gff=}!')
             self.assertNotIn(member='STRAIN.1', container=content, msg=f'Found "STRAIN.1" in renamed {gff=}!')
             self.assertGreater(a=count, b=1000)

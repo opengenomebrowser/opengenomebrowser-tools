@@ -1,7 +1,9 @@
 import os
 import re
+import gzip
 import json
 import logging
+from string import digits
 from datetime import datetime
 from typing import Union, Callable
 
@@ -14,9 +16,13 @@ Entrez.email = os.environ.get('ENTREZ_EMAIL', 'opengenomebrowser@bioinformatics.
 
 
 class GenomeFile:
-    def __init__(self, file: str):
-        assert os.path.isfile(file)
+    original_path: str
+    target_path: str
+
+    def __init__(self, file: str, original_path: str = None):
         self.path = file
+        self.original_path = original_path
+        assert os.path.isfile(file), f'{self}: {file=} does not exist!'
 
     def __str__(self):
         return f'{type(self).__name__}: {os.path.basename(self.path)}'
@@ -38,8 +44,11 @@ class GenomeFile:
 
         if old_locus_tag_prefix is None:
             old_locus_tag_prefix = self.detect_locus_tag_prefix()
+            logging.info(f'detected locus tag: {old_locus_tag_prefix}')
         else:
-            assert old_locus_tag_prefix == self.detect_locus_tag_prefix(), f'Locus tag prefix does not match! {old_locus_tag_prefix=}'
+            detected_locus_tag_prefix = self.detect_locus_tag_prefix()
+            logging.info(f'detected locus tag: {detected_locus_tag_prefix}')
+            assert old_locus_tag_prefix == detected_locus_tag_prefix, f'Locus tag prefix does not match! {detected_locus_tag_prefix=} != {old_locus_tag_prefix=}'
 
         assert new_locus_tag_prefix != old_locus_tag_prefix, f'Aborting: {new_locus_tag_prefix=} is the same as {old_locus_tag_prefix=}'
 
@@ -56,15 +65,14 @@ class GenomeFile:
 
 
 def query_yes_no(question: str, default: str = None, color='blue') -> bool:
-    '''Ask a yes/no question via raw_input() and return their answer.
+    """
+    Ask a yes/no question via raw_input() and return their answer
 
-    'question' is a string that is presented to the user.
-    'default' is the presumed answer if the user just hits <Enter>.
-        It must be 'yes' (the default), 'no' or None (meaning
-        an answer is required of the user).
-
-    The 'answer' return value is True for 'yes' or False for 'no'.
-    '''
+    :param question: string that is presented to the user
+    :param default: the presumed answer if the user just hits <Enter>
+    :param color: color in which the question is formatted
+    :return: response (bool)
+    """
     valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
     if default is None:
         prompt = '[y/n] '
@@ -152,6 +160,13 @@ def entrez_organism_to_taxid(organism: str) -> int:
         return taxid
 
 
+def split_locus_tag(locus_tag: str) -> (str):
+    locus_tag = locus_tag.rsplit('|', 1)[-1]
+    prefix = locus_tag.rstrip(digits)
+    assert len(prefix) < len(locus_tag), f'Failed to detect {prefix=} from {locus_tag=}. Locus tags must end in digits'
+    return prefix, locus_tag[len(prefix):]
+
+
 def create_replace_function(replace_map: {str: str}) -> Callable:
     '''
     Returns a function that will replace all replace_map.keys with their corresponding replace_map.values
@@ -167,3 +182,9 @@ def create_replace_function(replace_map: {str: str}) -> Callable:
         return pattern.sub(lambda m: replace_map[re.escape(m.group(0))], text)
 
     return replace_fn
+
+
+def decompress_gz(gz: str, out: str):
+    with gzip.open(gz, 'rb') as f_in, open(out, 'w') as f_out:
+        for line in f_in:
+            f_out.write(line.decode('utf-8'))

@@ -25,26 +25,26 @@ class Test(TestCase):
         for fasta in fastas:
             with open(fasta) as f:
                 locus_tag_prefix, gene_id = FastaFile.parse_fasta_header(f.readline())
-            self.assertIn(member=locus_tag_prefix, container=['tmp', 'STRAIN.1'])
+            self.assertIn(member=locus_tag_prefix, container=['tmp_', 'STRAIN.1_'])
             self.assertIn(member=gene_id, container=['00001', '000289'])
 
     def test_detect_locus_tag_prefix(self):
         for fasta in fastas:
             locus_tag_prefix = FastaFile(fasta).detect_locus_tag_prefix()
-            self.assertIn(member=locus_tag_prefix, container=['tmp', 'STRAIN.1'])
+            self.assertIn(member=locus_tag_prefix, container=['tmp_', 'STRAIN.1_'])
 
     def test_rename(self):
         for fasta in fastas:
             cleanup()
-            FastaFile(fasta).rename(new_locus_tag_prefix='YOLO', out=TMPFILE, validate=True)
+            FastaFile(fasta).rename(new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True)
             with open(fasta) as f_old, open(TMPFILE) as f_new:
                 content_old = f_old.read()
                 content_new = f_new.read()
             self.assertNotIn(member='tmp', container=content_new)
             self.assertNotIn(member='STRAIN.1', container=content_new)
             self.assertEqual(
-                first=content_new.count('YOLO'),
-                second=max(content_old.count('tmp'), content_old.count('STRAIN.1'))
+                first=content_new.count('YOLO_'),
+                second=max(content_old.count('tmp_'), content_old.count('STRAIN.1_'))
             )
 
     @classmethod

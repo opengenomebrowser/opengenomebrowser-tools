@@ -15,7 +15,7 @@ def cleanup():
 
 class Test(TestCase):
     def test_reindex_assembly(self):
-        reindex_assembly(file=INFILE, out=TMPFILE, prefix='TEST')
+        reindex_assembly(file=INFILE, out=TMPFILE, prefix='TEST_')
         with open(TMPFILE) as f:
             firstline = f.readline()
             self.assertEqual(firstline, '>TEST_1\n')
@@ -25,7 +25,7 @@ class Test(TestCase):
                     break
 
     def test_reindex_assembly_leading_zeroes(self):
-        reindex_assembly(file=INFILE, out=TMPFILE, prefix='TEST', leading_zeroes=5)
+        reindex_assembly(file=INFILE, out=TMPFILE, prefix='TEST_', leading_zeroes=5)
         with open(TMPFILE) as f:
             firstline = f.readline()
             self.assertEqual(firstline, '>TEST_00001\n')

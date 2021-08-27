@@ -17,26 +17,25 @@ def cleanup():
 
 
 class Test(TestCase):
-
     def test_detect_locus_tag_prefix(self):
         for custom_file in custom_files:
             locus_tag_prefix = CustomAnnotationFile(custom_file).detect_locus_tag_prefix()
-            self.assertEqual(locus_tag_prefix, 'tmp')
+            self.assertEqual(locus_tag_prefix, 'tmp_')
 
     def test_validate_locus_tags(self):
         for custom_file in custom_files:
             CustomAnnotationFile(custom_file).validate_locus_tags(locus_tag_prefix=None)
-            CustomAnnotationFile(custom_file).validate_locus_tags(locus_tag_prefix='tmp')
+            CustomAnnotationFile(custom_file).validate_locus_tags(locus_tag_prefix='tmp_')
             with self.assertRaises(AssertionError):
-                CustomAnnotationFile(custom_file).validate_locus_tags(locus_tag_prefix='xxx')
+                CustomAnnotationFile(custom_file).validate_locus_tags(locus_tag_prefix='xxx_')
 
     def test_rename_custom_annotations(self):
         for custom_file in custom_files:
             cleanup()
-            CustomAnnotationFile(custom_file).rename(new_locus_tag_prefix='YOLO', out=TMPFILE, validate=True)
+            CustomAnnotationFile(custom_file).rename(new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True)
             with open(TMPFILE) as f:
                 content = f.read()
-            count = content.count('YOLO')
+            count = content.count('YOLO_')
             self.assertNotIn(member='tmp', container=content)
             self.assertEqual(count, 3)
 
