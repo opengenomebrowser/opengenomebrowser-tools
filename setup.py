@@ -30,7 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'import_genome=opengenomebrowser_tools.import_genome:main',
-            'download_ncbi_assembly=opengenomebrowser_tools.download_ncbi_assembly:main',
+            'download_ncbi_genome=opengenomebrowser_tools.download_ncbi_genome:main',
             'genbank_to_fasta=opengenomebrowser_tools.genbank_to_fasta:main',
             'reindex_assembly=opengenomebrowser_tools.reindex_assembly:main',
             'rename_custom_annotations=opengenomebrowser_tools.rename_custom_annotations:main',

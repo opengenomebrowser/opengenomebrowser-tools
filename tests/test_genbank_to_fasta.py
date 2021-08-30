@@ -30,7 +30,7 @@ class TestGenBankToFasta(TestCase):
         for gbk, locus_tag_prefix in GENBANK_FILES:
             assert os.path.isfile(gbk), f'File does not exist: {gbk}'
 
-    def conver_tester(self, gbk, format):
+    def convert_tester(self, gbk, format):
         cleanup()
         GenBankToFasta.convert(gbk=gbk, out=TMPFILE, format=format, strict=True)
         cleanup()
@@ -38,7 +38,7 @@ class TestGenBankToFasta(TestCase):
     def test_convert(self):
         for gbk, locus_tag_prefix in GENBANK_FILES:
             for format in ['faa', 'ffn']:
-                self.conver_tester(gbk=gbk, format=format)
+                self.convert_tester(gbk=gbk, format=format)
 
     def long_fasta_tester(self, gbk, format, locus_tag_prefix):
         ALLOWED_CHARS = FAA_CHARS if format == 'faa' else FFN_CHARS

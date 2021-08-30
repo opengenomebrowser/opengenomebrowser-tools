@@ -22,8 +22,9 @@ This package contains the following scripts
 | `rename_gff`                | Change locus tags of gff (general feature format) files                  |
 | `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)               |
 | `rename_custom_annotations` | Change locus tags of custom annotations files                            |
-| `reindex_assembly`          | Change FASTA headers of assembliy files                                  |
+| `reindex_assembly`          | Change FASTA headers of assembly files                                  |
 | `genbank_to_fasta`          | Convert GenBank (`.gbk`) to nucleotide- or protein FASTA (`.ffn`/`.faa`) |
+| `download_ncbi_genome`      | Download genome from NCBI and change locus tags (`.fna`, `.gbk`, `.gff`, `.ffn`, `faa`) |
 
 All of these scripts have help functions, for example:
 
@@ -287,6 +288,17 @@ Usage:
 ```bash
 gbk_to_ffn \
   --gbk /path/to/input.gbk \
-  --out /path/to/output.xxx \
+  --out /path/to/output.fasta \
   --format faa  # or ffn
+```
+
+## `download_ncbi_genome`: Download genome from NCBI
+
+Usage:
+
+```bash
+download_ncbi_genome \
+  --assembly_name GCF_005864195.1 \
+  --out_dir /path/to/output \
+  --new_locus_tag_prefix FAM3257_ 
 ```

@@ -1,12 +1,8 @@
-import shutil
 from unittest import TestCase
 
 import os
 import logging
-from opengenomebrowser_tools.download_ncbi_assembly import download_ncbi_assembly, convert_ncbi_assembly, download_and_convert_ncbi_assembly
-from opengenomebrowser_tools.rename_genbank import GenBankFile, GenomeFile
-from opengenomebrowser_tools.rename_fasta import FastaFile
-from opengenomebrowser_tools.rename_gff import GffFile
+from opengenomebrowser_tools.download_ncbi_genome import get_record_id, download_ncbi_fna_gbk_gff, rename_ncbi_files, download_ncbi_genome
 
 logging.basicConfig(level=logging.INFO)
 
@@ -40,26 +36,49 @@ def get_paths(dir: str, prefix: str) -> (str, str, str, str, str, str):
 
 
 class Test(TestCase):
+    def test_get_record_id(self):
+        self.assertEqual(get_record_id('GCF_005864195.1'), '3205601')
+
     def test_download_FAM3257(self):
         # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1'))
-        fna, gbk, gff = download_ncbi_assembly(assembly_name='GCF_005864195.1', out_dir=DOWNLOAD_DIR)
+        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCF_005864195.1', out_dir=DOWNLOAD_DIR)
         for file in (fna, gbk, gff):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
 
-    def test_convert_FAM3257(self):
+    def test_rename_FAM3257(self):
         raw_fna, raw_gbk, raw_gff, _, _ = get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1')
         out_fna, out_gbk, out_gff, out_ffn, out_faa = get_paths(dir=CONVERT_DIR, prefix='FAM3257')
         cleanup([out_fna, out_gbk, out_gff, out_ffn, out_faa])
-        convert_ncbi_assembly(
+        rename_ncbi_files(
             raw_fna, raw_gbk, raw_gff,
             out_fna, out_gbk, out_gff, out_ffn, out_faa,
             new_locus_tag_prefix='FAM3257_',
             old_locus_tag_prefix='FEZ40_RS',
+            scaffold_prefix='FAM3257_scf',
             validate=True
         )
 
-    def test_download_and_convert_FAM3257(self):
+    def test_download_and_rename_FAM3257(self):
         # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='FAM3257'))
-        download_and_convert_ncbi_assembly(assembly_name='GCF_005864195.1', new_locus_tag_prefix='FAM3257_', out_dir=DOWNLOAD_DIR)
+        download_ncbi_genome(assembly_name='GCF_005864195.1', new_locus_tag_prefix='FAM3257_', out_dir=DOWNLOAD_DIR)
         for file in get_paths(dir=DOWNLOAD_DIR, prefix='FAM3257'):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+
+    def test_download_FAM8105(self):
+        # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1'))
+        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='CP015496.1', out_dir=DOWNLOAD_DIR)
+        for file in (fna, gbk, gff):
+            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+
+    def test_rename_FAM8105(self):
+        raw_fna, raw_gbk, raw_gff, _, _ = get_paths(dir=DOWNLOAD_DIR, prefix='CP015496.1')
+        out_fna, out_gbk, out_gff, out_ffn, out_faa = get_paths(dir=CONVERT_DIR, prefix='FAM8105')
+        cleanup([out_fna, out_gbk, out_gff, out_ffn, out_faa])
+        rename_ncbi_files(
+            raw_fna, raw_gbk, raw_gff,
+            out_fna, out_gbk, out_gff, out_ffn, out_faa,
+            new_locus_tag_prefix='FAM8105_',
+            old_locus_tag_prefix='Lh8105_RS',
+            scaffold_prefix='FAM8105_scf',
+            validate=True
+        )

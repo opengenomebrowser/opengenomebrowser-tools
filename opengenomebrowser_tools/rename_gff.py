@@ -67,7 +67,7 @@ class GffFile(GenomeFile):
     @classmethod
     def _extract_gff_locus_tag(cls, line: str) -> (str, str):
         data = cls._extract_gff_data(line)
-        if not 'locus_tag' in data:
+        if 'locus_tag' not in data:
             raise NoLocusTagInGffLine(f'gff data contains no locus_tag! {line}')
         locus_tag = data['locus_tag']
         locus_tag_prefix, gene_id = split_locus_tag(locus_tag)

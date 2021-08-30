@@ -9,4 +9,4 @@ from .rename_gff import rename_gff, GffFile
 from .rename_genbank import rename_genbank, GenBankFile
 from .rename_custom_annotations import rename_custom_annotations, CustomAnnotationFile
 from .rename_fasta import rename_fasta, FastaFile
-from .download_ncbi_assembly import download_ncbi_assembly, convert_ncbi_assembly, download_and_convert_ncbi_assembly
+from .download_ncbi_genome import download_ncbi_fna_gbk_gff, rename_ncbi_files, download_ncbi_genome
