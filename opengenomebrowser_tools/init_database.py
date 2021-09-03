@@ -72,6 +72,8 @@ def init_database(database_dir: str = None) -> None:
         │   └── GO.tsv
         ├── orthologs
         └── pathway-maps
+            ├── type_dictionary.json
+            └── svg
 
 
     :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Will contain 'organisms' folder.)
@@ -91,8 +93,11 @@ def init_database(database_dir: str = None) -> None:
     # make orthologs dir (empty)
     os.makedirs(f'{database_dir}/orthologs')
 
-    # make pathway maps dir (empty)
+    # make pathway maps dir and content
     os.makedirs(f'{database_dir}/pathway-maps')
+    os.makedirs(f'{database_dir}/pathway-maps/svg')
+    with open(f'{database_dir}/pathway-maps/type_dictionary.json') as f:
+        f.write('{}')
 
     # Create annotations.json
     shutil.copy(src=f'{PACKAGE_ROOT}/data/annotations.json', dst=f'{database_dir}/annotations.json')

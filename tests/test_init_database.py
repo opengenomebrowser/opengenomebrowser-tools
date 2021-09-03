@@ -25,6 +25,7 @@ class Test(TestCase):
             f'{GENOMIC_DATABASE}/orthologs',
             f'{GENOMIC_DATABASE}/annotation-descriptions',
             f'{GENOMIC_DATABASE}/pathway-maps',
+            f'{GENOMIC_DATABASE}/pathway-maps/svg',
         ]:
             self.assertTrue(os.path.isdir(dir))
 
@@ -34,6 +35,7 @@ class Test(TestCase):
             f'{GENOMIC_DATABASE}/annotation-descriptions/GO.tsv',
             f'{GENOMIC_DATABASE}/annotation-descriptions/KG.tsv',
             f'{GENOMIC_DATABASE}/annotation-descriptions/KR.tsv',
+            f'{GENOMIC_DATABASE}/pathway-maps/type_dictionary.json',
         ]:
             self.assertTrue(os.path.isfile(file))
 

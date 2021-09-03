@@ -42,8 +42,7 @@ Creates a basic OpenGenomeBrowser folders structure.
 Once the folder structure has been initiated...
 
 - use [`import_genome`](#import_genome) to add genomes to the folder structure
-- use [`download_ncbi_genome`](#download_ncbi_genome-download-genome-from-ncbi) and [`import_genome`](#import_genome) to download and add genomes from
-  NCBI
+- use [`download_ncbi_genome`](#download_ncbi_genome) and [`import_genome`](#import_genome) to download and add genomes from NCBI
 - when all genomes have been added, use [`init_orthofinder`](#init_orthofinder) and [`import_orthofinder`](#import_orthofinder) to calculate
   orthologs (optional)
 
@@ -68,6 +67,8 @@ init_database  # or --database_dir=/path/to/database
   │   └── GO.tsv
   ├── orthologs
   └── pathway-maps
+      ├── type_dictionary.json
+      └── svg
 ```
 
 </details>
@@ -388,6 +389,13 @@ The output of OrthoFinder needs to be processed for OpenGenomeBrowser. This scri
 
 - `annotation-descriptions/OL.tsv`: maps orthologs to the most common gene name, i.e. `OG0000005` -> `MFS transporter`
 - `orthologs/orthologs.tsv`: maps orthologs to genes, i.e. `OG0000005` -> `STRAIN1_000069, STRAIN2_000128, STRAIN2_000137`
+
+Usage:
+
+```shell
+export GENOMIC_DATABASE=/path/to/database
+import_orthofinder --which hog  # hog for hierarchical orthogroups and og for regular orthogroups
+```
 
 Once these files exist, run the following command from within the OpenGenomeBrowser docker container:
 
