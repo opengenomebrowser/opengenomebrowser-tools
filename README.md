@@ -364,7 +364,7 @@ outdir
 
 ## init_orthofinder
 
-This script will print the command to run OrthoFinder and create a new folder in the folder structure.
+This script collects the protein FASTAs in `database/OrthoFinder/fastas` and prints the command to run OrthoFinder.
 
 ```
   database
