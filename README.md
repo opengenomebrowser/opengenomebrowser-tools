@@ -16,15 +16,18 @@ This package contains the following scripts
 
 | Script                      | Purpose                                                                  |
 |-----------------------------|--------------------------------------------------------------------------|
+| `init_database`             | Create the bare-bone folder structure                                    |
 | `import_genome`             | Import genome-associated files into OpenGenomeBrowser folder structure, automatically generate metadata files |
 | `rename_fasta`              | Change locus tags of FASTA files                                         |
 | `rename_genbank`            | Change locus tags of GenBank files (tested with prokka and PGAP files)   |
 | `rename_gff`                | Change locus tags of gff (general feature format) files                  |
 | `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)               |
 | `rename_custom_annotations` | Change locus tags of custom annotations files                            |
-| `reindex_assembly`          | Change FASTA headers of assembly files                                  |
+| `reindex_assembly`          | Change FASTA headers of assembly files                                   |
 | `genbank_to_fasta`          | Convert GenBank (`.gbk`) to nucleotide- or protein FASTA (`.ffn`/`.faa`) |
 | `download_ncbi_genome`      | Download genome from NCBI and change locus tags (`.fna`, `.gbk`, `.gff`, `.ffn`, `faa`) |
+| `init_orthofinder`          | Collect the protein fastas in the database and print the OrthoFinder command |
+| `import_orthofinder`        | After OrthoFinder is done, use this script to process its output         |
 
 All of these scripts have help functions, for example:
 
@@ -32,19 +35,56 @@ All of these scripts have help functions, for example:
 import_genome --help
 ```
 
+## init_database
+
+Creates a basic OpenGenomeBrowser folders structure.
+
+Once the folder structure has been initiated...
+
+- use [`import_genome`](#import_genome) to add genomes to the folder structure
+- use [`download_ncbi_genome`](#download_ncbi_genome-download-genome-from-ncbi) and [`import_genome`](#import_genome) to download and add genomes from
+  NCBI
+- when all genomes have been added, use [`init_orthofinder`](#init_orthofinder) and [`import_orthofinder`](#import_orthofinder) to calculate
+  orthologs (optional)
+
+Usage:
+
+```shell
+export GENOMIC_DATABASE=/path/to/database
+init_database  # or --database_dir=/path/to/database
+```
+
+<details>
+  <summary>This will result in the following result:</summary>
+
+```
+  database
+  ├── organisms
+  ├── annotations.json
+  ├── annotation-descriptions
+  │   ├── KO.tsv
+  │   ├── KR.tsv
+  │   ├── EC.tsv
+  │   └── GO.tsv
+  ├── orthologs
+  └── pathway-maps
+```
+
+</details>
+
 ## import_genome
 
 If the annotation was performed using the proper organism name, genome identifier and taxonomic information (recommended), the import is
 straightforward because no files need to be renamed.
 
-```bash
+```shell
 export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organisms' folder
 import_genome --import_dir=/prokka/out/dir  # optional: add "--organism STRAIN --genome STRAIN.1" as sanity check
 ```
 
 ### `import_genome`: Renaming files
 
-```bash
+```shell
 export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organisms' folder
 import_genome --import_dir=/prokka/out/dir --organism STRAIN --genome STRAIN.1 --rename
 ```
@@ -109,7 +149,7 @@ database
 <details>
   <summary>Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, this is how to run prokka:</summary>
 
-```bash
+```shell
 prokka \
   --strain STRAIN \ 
   --locustag STRAIN.1 \
@@ -144,7 +184,7 @@ publications: # Optional. If set, this script can automatically add it to the li
 It is possible to change where files end up in the folder structure. The behaviour is determined by a config file in json format that can be specified
 with the --import_settings parameter or the OGB_IMPORT_SETTINGS environment variable.
 
-```bash
+```shell
 export OGB_IMPORT_SETTINGS=/path/to/import_config.json
 ```
 
@@ -259,7 +299,7 @@ There are two ways to achieve this:
 
 All rename-scripts (`rename_fasta`, `rename_genbank`, `rename_gff`, `rename_eggnog`, `rename_custom_annotations`) have the same syntax:
 
-```bash
+```shell
 rename_fasta \
   --file /path/to/input.file \
   --out /path/to/output.file \
@@ -267,11 +307,11 @@ rename_fasta \
   --old_locus_tag_prefix STRAIN.1  # optional, good as sanity check
 ```
 
-## `reindex_assembly`: Change the header line of FASTA files
+## `reindex_assembly`
 
 This script changes the header of FASTA files.
 
-```bash
+```shell
 reindex_assembly \
   --file /path/to/input.file \
   --out /path/to/output.file \
@@ -281,24 +321,77 @@ reindex_assembly \
 
 This would transform a FASTA header like this `>anything here` into `>STRAIN_scf_00001`.
 
-## `genbank_to_fasta`: Convert GenBank to nucleotide FASTA
+## `genbank_to_fasta`
+
+Convert GenBank to nucleotide FASTA (`.faa` or `ffn`)
 
 Usage:
 
-```bash
-gbk_to_ffn \
+```shell
+genbank_to_fasta \
   --gbk /path/to/input.gbk \
   --out /path/to/output.fasta \
   --format faa  # or ffn
 ```
 
-## `download_ncbi_genome`: Download genome from NCBI
+## `download_ncbi_genome`
+
+Download genome-associated files (`.fna`, `.gbk`, `.gff`) from NCBI, rename the locus_tag_prefixes, and generate `.ffn` and `faa` files.
 
 Usage:
 
-```bash
+```shell
 download_ncbi_genome \
   --assembly_name GCF_005864195.1 \
-  --out_dir /path/to/output \
+  --out_dir /path/to/outdir \
   --new_locus_tag_prefix FAM3257_ 
 ```
+
+<details>
+  <summary>Result:</summary>
+
+```text
+outdir
+├── FAM3257.faa
+├── FAM3257.ffn
+├── FAM3257.fna
+├── FAM3257.gbk
+└── FAM3257.gff
+```
+
+</details>
+
+## init_orthofinder
+
+This script will print the command to run OrthoFinder and create a new folder in the folder structure.
+
+```
+  database
+  ├── ...
+  └── OrthoFinder
+      └── fastas
+          ├── GENOME1.faa
+          ├── GENOME2.faa
+          └── ...
+```
+
+Usage:
+
+```shell
+export GENOMIC_DATABASE=/path/to/database
+init_orthofinder --representatives_only
+```
+
+## import_orthofinder
+
+The output of OrthoFinder needs to be processed for OpenGenomeBrowser. This script creates two files:
+
+- `annotation-descriptions/OL.tsv`: maps orthologs to the most common gene name, i.e. `OG0000005` -> `MFS transporter`
+- `orthologs/orthologs.tsv`: maps orthologs to genes, i.e. `OG0000005` -> `STRAIN1_000069, STRAIN2_000128, STRAIN2_000137`
+
+Once these files exist, run the following command from within the OpenGenomeBrowser docker container:
+
+```shell
+python db_setup/manage_ogb.py import-orthologs
+```
+

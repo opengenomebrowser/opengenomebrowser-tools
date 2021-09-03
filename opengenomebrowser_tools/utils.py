@@ -14,6 +14,8 @@ DATE_FORMAT = '%Y-%m-%d'
 TMPDIR = os.environ.get('TMPDIR', '/tmp')
 Entrez.email = os.environ.get('ENTREZ_EMAIL', 'opengenomebrowser@bioinformatics.unibe.ch')
 
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(__file__))
+
 
 class GenomeFile:
     original_path: str
@@ -160,8 +162,12 @@ def entrez_organism_to_taxid(organism: str) -> int:
         return taxid
 
 
-def split_locus_tag(locus_tag: str) -> (str):
-    locus_tag = locus_tag.rsplit('|', 1)[-1]
+def clean_locus_tag(locus_tag: str) -> (str):
+    return locus_tag.rsplit('|', 1)[-1]
+
+
+def split_locus_tag(locus_tag: str) -> (str, str):
+    locus_tag = clean_locus_tag(locus_tag)
     prefix = locus_tag.rstrip(digits)
     assert len(prefix) < len(locus_tag), f'Failed to detect {prefix=} from {locus_tag=}. Locus tags must end in digits'
     return prefix, locus_tag[len(prefix):]

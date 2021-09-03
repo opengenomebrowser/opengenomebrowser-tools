@@ -11,7 +11,7 @@ README = (HERE / 'README.md').read_text()
 # This call to setup() does all the work
 setup(
     name='opengenomebrowser-tools',
-    version='0.0.1',
+    version='0.0.2',
     description=' Set of scripts to aid OpenGenomeBrowser administrators import data',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -29,6 +29,7 @@ setup(
     install_requires=['schema', 'biopython', 'termcolor', 'fire', 'pyyaml'],
     entry_points={
         'console_scripts': [
+            'init_database=opengenomebrowser_tools.init_database:main',
             'import_genome=opengenomebrowser_tools.import_genome:main',
             'download_ncbi_genome=opengenomebrowser_tools.download_ncbi_genome:main',
             'genbank_to_fasta=opengenomebrowser_tools.genbank_to_fasta:main',
@@ -38,6 +39,9 @@ setup(
             'rename_fasta=opengenomebrowser_tools.rename_fasta:main',
             'rename_genbank=opengenomebrowser_tools.rename_genbank:main',
             'rename_gff=opengenomebrowser_tools.rename_gff:main',
+            'init_orthofinder=opengenomebrowser_tools.init_orthofinder:main',
+            'import_orthofinder=opengenomebrowser_tools.import_orthofinder:main',
+            'folder_looper=opengenomebrowser_tools.folder_looper:main',
         ]
     },
 )

@@ -1,0 +1,127 @@
+{
+  "EC": {
+    "name": "EC Number",
+    "color": "rgb(222,203,228)",
+    "regex": "^EC:[0-9\\.-]{1,12}$",
+    "hyperlinks": [
+      {
+        "name": "SIB Rhea DB",
+        "url": "https://www.rhea-db.org/rhea?query=${annotation}"
+      },
+      {
+        "name": "BRENDA",
+        "url": "https://www.brenda-enzymes.org/enzyme.php?ecno=${annotation.substring(3)}"
+      }
+    ]
+  },
+  "KG": {
+    "name": "KEGG gene",
+    "color": "rgb(179,205,227)",
+    "regex": "^K[0-9]{5}$",
+    "hyperlinks": [
+      {
+        "name": "KEGG website",
+        "url": "https://www.genome.jp/dbget-bin/www_bget?ko:${annotation}"
+      }
+    ]
+  },
+  "KR": {
+    "name": "KEGG reaction",
+    "color": "rgb(229,216,189)",
+    "regex": "^R[0-9]{5}$",
+    "hyperlinks": [
+      {
+        "name": "KEGG website",
+        "url": "https://www.genome.jp/dbget-bin/www_bget?rn:${annotation}"
+      },
+      {
+        "name": "SIB Rhea DB",
+        "url": "https://www.rhea-db.org/rhea?query=kegg%3A${annotation}"
+      }
+    ]
+  },
+  "GO": {
+    "name": "Gene Ontology",
+    "color": "rgb(255,255,204)",
+    "regex": "^GO:[0-9]{7}$",
+    "hyperlinks": [
+      {
+        "name": "QuickGO",
+        "url": "https://www.ebi.ac.uk/QuickGO/term/${annotation}"
+      },
+      {
+        "name": "AmiGO",
+        "url": "http://amigo.geneontology.org/amigo/term/${annotation}"
+      }
+    ]
+  },
+  "OL": {
+    "name": "Ortholog",
+    "color": "rgb(254,217,166)",
+    "regex": "^((N[0-9]+\\.)?H)?OG[0-9]{7}$",
+    "hyperlinks": []
+  },
+  "GC": {
+    "name": "Gene Code",
+    "color": "rgb(204,235,197)",
+    "regex": "^[0-9a-zA-Z\\_\\/\\-\\ \\']{3,11}$",
+    "hyperlinks": [
+      {
+        "name": "Uniprot",
+        "url": "https://www.uniprot.org/uniprot/?query=gene%3A${annotation}&sort=score"
+      }
+    ]
+  },
+  "GP": {
+    "name": "Gene Product",
+    "color": "rgb(255,163,254)",
+    "regex": "^.*$",
+    "hyperlinks": [
+      {
+        "name": "Uniprot",
+        "url": "https://www.uniprot.org/uniprot/?query=name%3A%22${annotation}%22&sort=score"
+      },
+      {
+        "name": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=${annotation}"
+      }
+    ]
+  },
+  "EP": {
+    "name": "Eggnog Protein",
+    "color": "rgb(255, 212, 212)",
+    "regex": "^EP:.*$",
+    "hyperlinks": [
+      {
+        "name": "Uniprot",
+        "url": "https://www.uniprot.org/uniprot/?query=gene%3A${annotation.substring(3)}&sort=score"
+      }
+    ]
+  },
+  "EO": {
+    "name": "Eggnog Ortholog",
+    "color": "rgb(234, 197, 197)",
+    "regex": "^EO:.*$",
+    "hyperlinks": [
+      {
+        "name": "Eggnog API",
+        "url": "http://eggnogapi5.embl.de/nog_data/json/go_terms,domains,tree/${annotation.substring(3)}"
+      }
+    ]
+  },
+  "ED": {
+    "name": "Eggnog Description",
+    "color": "rgb(198, 145, 145)",
+    "regex": "^ED:.*$",
+    "hyperlinks": [
+      {
+        "name": "Uniprot",
+        "url": "https://www.uniprot.org/uniprot/?query=name%3A%22${annotation.substring(3)}%22&sort=score"
+      },
+      {
+        "name": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/?term=${annotation.substring(3)}"
+      }
+    ]
+  }
+}
