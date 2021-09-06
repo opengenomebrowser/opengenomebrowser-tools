@@ -31,16 +31,17 @@ class Test(TestCase):
 
         for file in [
             f'{GENOMIC_DATABASE}/annotations.json',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/EC.tsv',
+            f'{GENOMIC_DATABASE}/annotation-descriptions/SL.tsv',
             f'{GENOMIC_DATABASE}/annotation-descriptions/GO.tsv',
+            f'{GENOMIC_DATABASE}/annotation-descriptions/EC.tsv',
             f'{GENOMIC_DATABASE}/annotation-descriptions/KG.tsv',
             f'{GENOMIC_DATABASE}/annotation-descriptions/KR.tsv',
             f'{GENOMIC_DATABASE}/pathway-maps/type_dictionary.json',
         ]:
-            self.assertTrue(os.path.isfile(file))
+            self.assertTrue(os.path.isfile(file), msg=f'File does not exist: {file=}')
 
-    # def setUp(self) -> None:
-    #     cleanup()
+    def setUp(self) -> None:
+        cleanup()
 
     # @classmethod
     # def tearDownClass(cls) -> None:

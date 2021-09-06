@@ -61,6 +61,7 @@ init_database  # or --database_dir=/path/to/database
   ├── organisms
   ├── annotations.json
   ├── annotation-descriptions
+  │   ├── SL.tsv
   │   ├── KO.tsv
   │   ├── KR.tsv
   │   ├── EC.tsv

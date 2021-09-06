@@ -57,6 +57,25 @@ def download_kegg_data(src: str, out: str, remove_prefix: str = '', add_prefix: 
             target_handle.write(f'{add_prefix}{line.decode("utf-8").removeprefix(remove_prefix)}')
 
 
+def download_sl_data(out: str) -> None:
+    source_url = 'https://www.uniprot.org/locations/?query=*&format=tab&force=true&columns=id'
+
+    print(f'Converting {source_url} -> {out}')
+
+    error_msg = 'UniProt must have changed its format. Please contact the developer. error={error}'
+
+    with request.urlopen(source_url) as source_handle, open(out, 'w') as target_handle:
+        first_line = source_handle.readline().decode('utf-8')
+        assert first_line == 'Subcellular location ID\tDescription\tCategory\tAlias\n', error_msg.format(error=first_line)
+
+        for line in source_handle:
+            line = line.decode('utf-8').strip().split('\t')
+            assert len(line) == 4, error_msg.format(error=f'{len(line)=}; {line=}')
+            sl, description, type, location = line
+
+            target_handle.write(f'{sl}\t{location} ({description})\n')
+
+
 def init_database(database_dir: str = None) -> None:
     """
     Creates a basic OpenGenomeBrowser folders structure.
@@ -66,6 +85,7 @@ def init_database(database_dir: str = None) -> None:
         ├── organisms
         ├── annotations.json
         ├── annotation-descriptions
+        │   ├── SL.tsv
         │   ├── KO.tsv
         │   ├── KR.tsv
         │   ├── EC.tsv
@@ -96,7 +116,7 @@ def init_database(database_dir: str = None) -> None:
     # make pathway maps dir and content
     os.makedirs(f'{database_dir}/pathway-maps')
     os.makedirs(f'{database_dir}/pathway-maps/svg')
-    with open(f'{database_dir}/pathway-maps/type_dictionary.json') as f:
+    with open(f'{database_dir}/pathway-maps/type_dictionary.json', 'w') as f:
         f.write('{}')
 
     # Create annotations.json
@@ -105,6 +125,7 @@ def init_database(database_dir: str = None) -> None:
     # download annotation descriptions
     annotation_descriptions_dir = f'{database_dir}/annotation-descriptions'
     os.makedirs(annotation_descriptions_dir)
+    download_sl_data(out=f'{annotation_descriptions_dir}/SL.tsv')
     download_kegg_data(src='rn', out=f'{annotation_descriptions_dir}/KR.tsv', remove_prefix='rn:')
     download_kegg_data(src='ko', out=f'{annotation_descriptions_dir}/KG.tsv', remove_prefix='ko:')
     download_kegg_data(src='enzyme', out=f'{annotation_descriptions_dir}/EC.tsv', remove_prefix='ec:', add_prefix='EC:')

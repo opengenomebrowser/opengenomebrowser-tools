@@ -1,5 +1,5 @@
 /.idea/
 /test-data
+/database
 __pycache__
 esummary_assembly.dtd
-database

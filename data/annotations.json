@@ -123,5 +123,16 @@
         "url": "https://pubmed.ncbi.nlm.nih.gov/?term=${annotation.substring(3)}"
       }
     ]
+  },
+  "SL": {
+    "name": "Subcellular location",
+    "color": "rgb(163, 242, 255)",
+    "regex": "^SL-[0-9]{4}$",
+    "hyperlinks": [
+      {
+        "name": "Uniprot",
+        "url": "https://www.uniprot.org/locations/${annotation}/"
+      }
+    ]
   }
 }
