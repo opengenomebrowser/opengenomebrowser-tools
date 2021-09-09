@@ -12,6 +12,8 @@ from .genbank_to_fasta import GenBankToFasta
 def get_record_id(assembly_name: str) -> str:
     # fetch assembly report
     record = Entrez.read(Entrez.esearch(db='assembly', term=assembly_name, report='full'))
+    assert record['Count'] == '1', f'Expected 1 record. Found {record["Count"]}. ' \
+                                   f'Ensure a search on https://www.ncbi.nlm.nih.gov/assembly/?term={assembly_name} yields exactlyone result.'
 
     # extract record id
     ids = record['IdList']
@@ -37,7 +39,7 @@ def download_ncbi_file(record_id: str, out: str, file: str):
 
     with TemporaryDirectory() as tempdir:
         # download
-        gz_file = f'{tempdir}/{assembly_label}.{format}.gz'
+        gz_file = f'{tempdir}/{assembly_label}.{file}.gz'
         request.urlretrieve(ftp_link, gz_file)
         logging.info(f'Downloaded {ftp_link=}')
 

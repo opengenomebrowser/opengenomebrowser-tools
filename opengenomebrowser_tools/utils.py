@@ -194,3 +194,10 @@ def decompress_gz(gz: str, out: str):
     with gzip.open(gz, 'rb') as f_in, open(out, 'w') as f_out:
         for line in f_in:
             f_out.write(line.decode('utf-8'))
+
+
+def merge_json(json: dict, new: str = None) -> dict:
+    if new is not None and os.path.isfile(new):
+        with open(new) as f:
+            json.update(json.load(f))
+    return json

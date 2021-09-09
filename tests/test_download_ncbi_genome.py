@@ -38,14 +38,18 @@ def get_paths(dir: str, prefix: str) -> (str, str, str, str, str, str):
 class Test(TestCase):
     def test_get_record_id(self):
         self.assertEqual(get_record_id('GCF_005864195.1'), '3205601')
+        self.assertEqual(get_record_id('SAMN11653942'), '3205601')
+        with self.assertRaises(AssertionError):
+            get_record_id('this-is-fake-input')
 
     def test_download_FAM3257(self):
-        # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1'))
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1'))
         fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCF_005864195.1', out_dir=DOWNLOAD_DIR)
         for file in (fna, gbk, gff):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
 
     def test_rename_FAM3257(self):
+        # run only after previous test!
         raw_fna, raw_gbk, raw_gff, _, _ = get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1')
         out_fna, out_gbk, out_gff, out_ffn, out_faa = get_paths(dir=CONVERT_DIR, prefix='FAM3257')
         cleanup([out_fna, out_gbk, out_gff, out_ffn, out_faa])
@@ -59,15 +63,22 @@ class Test(TestCase):
         )
 
     def test_download_and_rename_FAM3257(self):
-        # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='FAM3257'))
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='FAM3257'))
         download_ncbi_genome(assembly_name='GCF_005864195.1', new_locus_tag_prefix='FAM3257_', out_dir=DOWNLOAD_DIR)
         for file in get_paths(dir=DOWNLOAD_DIR, prefix='FAM3257'):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
 
     def test_download_FAM8105(self):
-        # cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='GCF_005864195.1'))
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='CP015496.1'))
         fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='CP015496.1', out_dir=DOWNLOAD_DIR)
         for file in (fna, gbk, gff):
+            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+
+    def test_and_rename_biosample(self):
+        biosample = 'SAMN11653942'  # FAM3257
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix=biosample))
+        download_ncbi_genome(assembly_name=biosample, new_locus_tag_prefix=f'{biosample}_', out_dir=DOWNLOAD_DIR)
+        for file in get_paths(dir=DOWNLOAD_DIR, prefix=biosample):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
 
     def test_rename_FAM8105(self):
@@ -82,3 +93,8 @@ class Test(TestCase):
             scaffold_prefix='FAM8105_scf',
             validate=True
         )
+
+    def test_download_and_rename_AF036485(self):
+        # has no record IDs
+        with self.assertRaises(AssertionError):
+            download_ncbi_genome(assembly_name='AF036485.1', new_locus_tag_prefix='AF036485.2_', out_dir=DOWNLOAD_DIR)

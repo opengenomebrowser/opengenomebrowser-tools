@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import os
 import logging
-from opengenomebrowser_tools.import_genome import runner, ImportSettings
+from opengenomebrowser_tools.import_genome import import_genome, ImportSettings
 
 logging.basicConfig(level=logging.INFO)
 
@@ -55,36 +55,36 @@ class Test(TestCase):
         with self.assertRaises(AssertionError):
             res = import_settings.get_path(original_path='bla.yolo', genome='XXX', organism='YYY')
 
-    def test_runner_pgap_good(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-good')
+    def test_import_pgap_good(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-good')
 
-    def test_runner_pgap_bad(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+    def test_import_pgap_bad(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
 
-    def test_runner_prokka_good(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good')
+    def test_import_prokka_good(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good')
 
-    def test_runner_prokka_bad(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+    def test_import_prokka_bad(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
 
-    def test_runner_conflict(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+    def test_import_conflict(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
         with self.assertRaises(AssertionError):
-            runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+            import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
 
-    def test_runner_conflict_solved(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.2', rename=True)
+    def test_import_conflict_solved(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.2', rename=True)
 
-    def test_runner_advanced_config(self):
-        runner(
+    def test_import_advanced_config(self):
+        import_genome(
             database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good',
             import_settings=f'{ROOT}/test-data/alternative-config.json',
             organism='STRAIN', genome='STRAIN.1'
         )
 
-    def test_runner_ncbi(self):
-        runner(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/ncbi-convert', organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
+    def test_import_ncbi(self):
+        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/ncbi-convert', organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
 
     def setUp(self) -> None:
         clean_up()

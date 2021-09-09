@@ -9,7 +9,7 @@ from textwrap import shorten
 from typing import Union, Optional
 from schema import SchemaError
 
-from .utils import entrez_organism_to_taxid, GenomeFile
+from .utils import entrez_organism_to_taxid, GenomeFile, merge_json
 from .rename_genbank import GenBankFile
 from .rename_gff import GffFile
 from .rename_fasta import FastaFile
@@ -220,18 +220,12 @@ class OgbImporter:
         # add _busco.txt
         genome_json.update(self.load_busco_metadata())
 
-        # add genome.json / organism.json
-        try:
-            with open(self.get_file(files=self.rest_files, file='genome.json')) as f:
-                genome_json.update(json.load(f))
-        except FileNotFoundError:
-            pass
+        # add organism.json from folder structure
+        organism_json = merge_json(organism_json, os.path.join(self.target_dir, '../../organism.json'))
 
-        try:
-            with open(self.get_file(files=self.rest_files, file='organism.json')) as f:
-                organism_json.update(json.load(f))
-        except FileNotFoundError:
-            pass
+        # add organism.json / genome.json from import_dir
+        organism_json = merge_json(organism_json, self.get_file(files=self.rest_files, file='organism.json', raise_error=False))
+        genome_json = merge_json(genome_json, self.get_file(files=self.rest_files, file='genome.json', raise_error=False))
 
         # add elementary identifiers
         organism_json['name'] = self.organism
@@ -241,6 +235,7 @@ class OgbImporter:
         # add files
         genome_json = self.add_files_to_json(genome_json)
 
+        # validate metadata files
         try:
             organism_json_schema.validate(organism_json)
         except SchemaError as e:
@@ -398,7 +393,7 @@ class OgbImporter:
                 logging.info(f'Could not delete {self.tempdir.name} {str(e)=}')
 
 
-def runner(
+def import_genome(
         import_dir: str,
         database_dir: str = None,
         organism: str = None,
@@ -437,7 +432,7 @@ def runner(
 def main():
     import fire
 
-    fire.Fire(runner)
+    fire.Fire(import_genome)
 
 
 if __name__ == '__main__':
