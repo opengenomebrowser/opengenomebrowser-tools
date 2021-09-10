@@ -273,7 +273,7 @@ class OgbImporter:
             self.faa = self.gbk.path[:-3] + 'faa'
             logging.info('Creating .faa based on .gbk...')
             self.gbk.create_faa(faa=self.faa)
-            return self.find_file(os.listdir(self.import_dir), '.ffn', FastaFile)
+            return self.find_file(os.listdir(self.import_dir), '.faa', FastaFile)
 
     def check_files(self) -> None:
         locus_tag_prefix = f'{self.genome}_'
