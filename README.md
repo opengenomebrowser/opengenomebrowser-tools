@@ -10,34 +10,20 @@ This package requires at least `Python 3.9`.
 pip install git+https://github.com/opengenomebrowser/opengenomebrowser-tools.git
 ```
 
-## Scripts
+## Help function
 
-This package contains the following scripts
-
-| Script                      | Purpose                                                                  |
-|-----------------------------|--------------------------------------------------------------------------|
-| `init_database`             | Create the bare-bone folder structure                                    |
-| `import_genome`             | Import genome-associated files into OpenGenomeBrowser folder structure, automatically generate metadata files |
-| `rename_fasta`              | Change locus tags of FASTA files                                         |
-| `rename_genbank`            | Change locus tags of GenBank files (tested with prokka and PGAP files)   |
-| `rename_gff`                | Change locus tags of gff (general feature format) files                  |
-| `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)               |
-| `rename_custom_annotations` | Change locus tags of custom annotations files                            |
-| `reindex_assembly`          | Change FASTA headers of assembly files                                   |
-| `genbank_to_fasta`          | Convert GenBank (`.gbk`) to nucleotide- or protein FASTA (`.ffn`/`.faa`) |
-| `download_ncbi_genome`      | Download genome from NCBI and change locus tags (`.fna`, `.gbk`, `.gff`, `.ffn`, `faa`) |
-| `init_orthofinder`          | Collect the protein fastas in the database and print the OrthoFinder command |
-| `import_orthofinder`        | After OrthoFinder is done, use this script to process its output         |
-
-All of these scripts have help functions, for example:
+All scripts have a help function, for example:
 
 ```bash
 import_genome --help
 ```
 
-## init_database
+## `init_database`
 
 Creates a basic OpenGenomeBrowser folders structure.
+
+<details>
+  <summary>More details:</summary>
 
 Once the folder structure has been initiated...
 
@@ -54,7 +40,7 @@ init_database  # or --database_dir=/path/to/database
 ```
 
 <details>
-  <summary>This will result in the following result:</summary>
+  <summary>Result:</summary>
 
 ```
   database
@@ -74,7 +60,14 @@ init_database  # or --database_dir=/path/to/database
 
 </details>
 
-## import_genome
+</details>
+
+## `import_genome`
+
+Import genome-associated files into OpenGenomeBrowser folder structure, automatically generate metadata files.
+
+<details>
+  <summary>More details:</summary>
 
 If the annotation was performed using the proper organism name, genome identifier and taxonomic information (recommended), the import is
 straightforward because no files need to be renamed.
@@ -84,7 +77,46 @@ export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organ
 import_genome --import_dir=/prokka/out/dir  # optional: add "--organism STRAIN --genome STRAIN.1" as sanity check
 ```
 
-### `import_genome`: Renaming files
+<details>
+  <summary>How to run prokka to get correct locus tags</summary>
+
+Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, this is how to run prokka:
+
+```shell
+prokka \
+  --strain STRAIN \ 
+  --locustag STRAIN.1 \
+  --genus Mycoplasma --species genitalium \  # Optional. If set, this script can automatically detect the taxid.
+  --out /prokka/out/dir \
+  assembly.fasta
+```
+
+</details>
+
+<details>
+  <summary>How to run PGAP to get correct locus tags</summary>
+
+Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, these are the lines in PGAPs `submol.yaml` that are relevant to
+this script:
+
+```yaml
+organism:
+  genus_species: 'Mycoplasma genitalium'  # Optional. If set, this script can automatically detect the taxid.
+  strain: 'STRAIN'
+locus_tag_prefix: 'STRAIN.1'
+bioproject: 'PRJNA9999999'  # Optional. If set, this script can automatically add it to bioproject_accession in genome.json.
+biosample: 'SAMN99999999'  # Optional. If set, this script can automatically add it to biosample_accession in genome.json.
+publications: # Optional. If set, this script can automatically add it to the literature_references in genome.json.
+  - publication:
+      pmid: 16397293
+```
+
+</details>
+
+### Rename files during import
+
+Should the locus tags not start with the genome identifier, the files need to be renamed accordingly. The `import_genome` command can do this
+automatically sung the `--rename` flag.
 
 ```shell
 export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organisms' folder
@@ -95,7 +127,7 @@ The renaming is provided as-is, and was only tested on files produced by certain
 the files manually (with or without the help of my [renaming scripts](#rename_-rename-locus-tags-in-genome-associated-files)) and then import them as
 described in the previous section.
 
-### `import_genome`: Required files
+### Required files
 
 These files need to be in `import_dir`:
 
@@ -115,7 +147,7 @@ Optional files:
 - `organism.json`: content will be added to final `organism.json`, may be as simple as `{"assembly_tool": "PGAP"}`
 
 <details>
-  <summary>This will result in the following result:</summary>
+  <summary>Example result:</summary>
 
 ```text
 #### folder structure ####
@@ -144,47 +176,10 @@ database
 
 </details>
 
-### `import_genome`: How to run annotation software to get correct locus tags
-
-- **Prokka**
-
-<details>
-  <summary>Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.1`, this is how to run prokka:</summary>
-
-```shell
-prokka \
-  --strain STRAIN \ 
-  --locustag STRAIN.1 \
-  --genus Mycoplasma --species genitalium \  # Optional. If set, this script can automatically detect the taxid.
-  --out /prokka/out/dir \
-  assembly.fasta
-```
-
-</details>
-
-- **PGAP**
-
-<details>
-  <summary>These are the lines in PGAPs `submol.yaml` that are relevant to this script:</summary>
-
-```yaml
-organism:
-  genus_species: 'Mycoplasma genitalium'  # Optional. If set, this script can automatically detect the taxid.
-  strain: 'STRAIN'
-locus_tag_prefix: 'STRAIN.1'
-bioproject: 'PRJNA9999999'  # Optional. If set, this script can automatically add it to bioproject_accession in genome.json.
-biosample: 'SAMN99999999'  # Optional. If set, this script can automatically add it to biosample_accession in genome.json.
-publications: # Optional. If set, this script can automatically add it to the literature_references in genome.json.
-  - publication:
-      pmid: 16397293
-```
-
-</details>
-
-### `import_genome`: Modify where files are moved to
+### Modify where files are moved to
 
 It is possible to change where files end up in the folder structure. The behaviour is determined by a config file in json format that can be specified
-with the --import_settings parameter or the OGB_IMPORT_SETTINGS environment variable.
+with the --import_settings parameter or the `OGB_IMPORT_SETTINGS` environment variable.
 
 ```shell
 export OGB_IMPORT_SETTINGS=/path/to/import_config.json
@@ -258,7 +253,7 @@ export OGB_IMPORT_SETTINGS=/path/to/import_config.json
 }
 ```
 
-This is what the result looks like:
+Result:
 
 ```text
 #### folder structure ####
@@ -289,17 +284,32 @@ database
 
 </details>
 
-### `import_genome`: Add custom metadata
+### Add custom metadata
 
 There are two ways to achieve this:
 
-1) Add a `organism.json` and/or `genome.json` file into `import_dir` (see [import_genome: Required files](#import_genome-required-files))
+1) Add a `organism.json` and/or `genome.json` file into `import_dir` (see [import_genome: Required files](#required-files))
 2) Set a global `organism.json` and/or `genome.json` file that is used as a basis for all future imports (
-   see [import_genome: Modify where files are moved to](#import_genome-modify-where-files-are-moved-to))
+   see [import_genome: Modify where files are moved to](#modify-where-files-are-moved-to))
 
-## `rename_*`: Rename locus tags in genome-associated files
+</details>
 
-All rename-scripts (`rename_fasta`, `rename_genbank`, `rename_gff`, `rename_eggnog`, `rename_custom_annotations`) have the same syntax:
+## `rename_*`
+
+The following scripts change the locus tags in the respective file formats.
+
+| Script                      | Purpose                                                                  |
+|-----------------------------|--------------------------------------------------------------------------|
+| `rename_fasta`              | Change locus tags of protein or nucleotide FASTA files                   |
+| `rename_genbank`            | Change locus tags of GenBank files (tested with prokka and PGAP files)   |
+| `rename_gff`                | Change locus tags of gff (general feature format) files                  |
+| `rename_eggnog`             | Change locus tags of Eggnog files (`.emapper.annotations`)               |
+| `rename_custom_annotations` | Change locus tags of custom annotations files                            |
+
+<details>
+  <summary>More details:</summary>
+
+The syntax is always the same.
 
 ```shell
 rename_fasta \
@@ -309,9 +319,14 @@ rename_fasta \
   --old_locus_tag_prefix STRAIN.1  # optional, good as sanity check
 ```
 
+</details>
+
 ## `reindex_assembly`
 
-This script changes the header of FASTA files.
+This script changes the header of assembly FASTA (`.fna`) files.
+
+<details>
+  <summary>More details:</summary>
 
 ```shell
 reindex_assembly \
@@ -323,9 +338,14 @@ reindex_assembly \
 
 This would transform a FASTA header like this `>anything here` into `>STRAIN_scf_00001`.
 
+</details>
+
 ## `genbank_to_fasta`
 
-Convert GenBank to nucleotide FASTA (`.faa` or `ffn`)
+Convert GenBank to nucleotide (`.ffn`) or protein FASTA (`.faa`).
+
+<details>
+  <summary>More details:</summary>
 
 Usage:
 
@@ -336,9 +356,14 @@ genbank_to_fasta \
   --format faa  # or ffn
 ```
 
+</details>
+
 ## `download_ncbi_genome`
 
-Download genome-associated files (`.fna`, `.gbk`, `.gff`) from NCBI, rename the locus_tag_prefixes, and generate `.ffn` and `faa` files.
+Download genome-associated files (`.fna`, `.gbk`, `.gff`) from NCBI, rename the locus tags, and generate `.ffn` and `faa` files.
+
+<details>
+  <summary>More details:</summary>
 
 Usage:
 
@@ -349,8 +374,7 @@ download_ncbi_genome \
   --new_locus_tag_prefix FAM3257_ 
 ```
 
-<details>
-  <summary>Result:</summary>
+Result:
 
 ```text
 outdir
@@ -361,11 +385,29 @@ outdir
 └── FAM3257.gff
 ```
 
+The next step might be to import these genomes into the OpenGenomeBrowser folder structure like this:
+
+```shell
+import_genome --import_dir=/path/to/outdir --organism FAM3257 --genome FAM3257
+```
+
 </details>
 
-## init_orthofinder
+## `init_orthofinder`
 
 This script collects the protein FASTAs in `database/OrthoFinder/fastas` and prints the command to run OrthoFinder.
+
+<details>
+  <summary>More details:</summary>
+
+Usage:
+
+```shell
+export GENOMIC_DATABASE=/path/to/database
+init_orthofinder --representatives_only
+```
+
+Result:
 
 ```
   database
@@ -377,25 +419,23 @@ This script collects the protein FASTAs in `database/OrthoFinder/fastas` and pri
           └── ...
 ```
 
-Usage:
+</details>
 
-```shell
-export GENOMIC_DATABASE=/path/to/database
-init_orthofinder --representatives_only
-```
-
-## import_orthofinder
+## `import_orthofinder`
 
 The output of OrthoFinder needs to be processed for OpenGenomeBrowser. This script creates two files:
 
 - `annotation-descriptions/OL.tsv`: maps orthologs to the most common gene name, i.e. `OG0000005` -> `MFS transporter`
 - `orthologs/orthologs.tsv`: maps orthologs to genes, i.e. `OG0000005` -> `STRAIN1_000069, STRAIN2_000128, STRAIN2_000137`
 
+<details>
+  <summary>More details:</summary>
+
 Usage:
 
 ```shell
 export GENOMIC_DATABASE=/path/to/database
-import_orthofinder --which hog  # hog for hierarchical orthogroups and og for regular orthogroups
+import_orthofinder --which hog  # 'hog' for hierarchical orthogroups and 'og' for regular orthogroups
 ```
 
 Once these files exist, run the following command from within the OpenGenomeBrowser docker container:
@@ -404,3 +444,4 @@ Once these files exist, run the following command from within the OpenGenomeBrow
 python db_setup/manage_ogb.py import-orthologs
 ```
 
+</details>
