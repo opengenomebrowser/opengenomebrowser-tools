@@ -1,6 +1,6 @@
 # based on https://realpython.com/pypi-publish-python-package
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -11,7 +11,7 @@ README = (HERE / 'README.md').read_text()
 # This call to setup() does all the work
 setup(
     name='opengenomebrowser-tools',
-    version='0.0.2',
+    version='0.0.3',
     description=' Set of scripts to aid OpenGenomeBrowser administrators import data',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -25,7 +25,7 @@ setup(
         'Programming Language :: Python :: 3.9',
     ],
     packages=['opengenomebrowser_tools'],
-    include_package_data=True,
+    include_package_data=True,  # see MANIFEST.in
     install_requires=['schema', 'biopython', 'termcolor', 'fire', 'pyyaml'],
     entry_points={
         'console_scripts': [
@@ -42,6 +42,7 @@ setup(
             'init_orthofinder=opengenomebrowser_tools.init_orthofinder:main',
             'import_orthofinder=opengenomebrowser_tools.import_orthofinder:main',
             'folder_looper=opengenomebrowser_tools.folder_looper:main',
+            'update_folder_structure=opengenomebrowser_tools.update_folder_structure:main',
         ]
     },
 )

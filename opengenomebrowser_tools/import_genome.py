@@ -189,6 +189,18 @@ class OgbImporter:
 
         return dict(BUSCO=parse_busco(busco_file.path))
 
+    def load_cog_metadata(self) -> dict:
+        for file in self.custom_annotations:
+            if type(file) is EggnogFile:
+                print('XXXXXXXX', file)
+                try:
+                    cog = file.cog_categories()
+                    return {'COG': cog}
+                except AssertionError as e:
+                    logging.info(f'Failed to extract COG information from {file.path}. {str(e)}')
+                    pass
+        return {}  # not eggnog file
+
     def gather_metadata(self):
         '''
         Load metadata from:
@@ -219,6 +231,9 @@ class OgbImporter:
 
         # add _busco.txt
         genome_json.update(self.load_busco_metadata())
+
+        # add COG from eggnog
+        genome_json.update(self.load_cog_metadata())
 
         # add organism.json from folder structure
         organism_json = merge_json(organism_json, os.path.join(self.target_dir, '../../organism.json'))
@@ -414,7 +429,8 @@ def import_genome(
     :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
     """
     if database_dir is None:
-        database_dir = os.environ.get('GENOMIC_DATABASE')
+        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
+        database_dir = os.environ['GENOMIC_DATABASE']
 
     ogb_importer = OgbImporter(database_dir=database_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
 

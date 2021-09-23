@@ -4,7 +4,8 @@ from .folder_looper import FolderLooper
 
 def init_orthofinder(database_dir: str = None, skip_ignored: bool = True, sanity_check: bool = True, representatives_only: bool = False):
     if database_dir is None:
-        database_dir = os.environ.get('GENOMIC_DATABASE')
+        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
+        database_dir = os.environ['GENOMIC_DATABASE']
 
     orthofinder_dir = os.path.join(database_dir, 'OrthoFinder')
     fasta_dir = os.path.join(orthofinder_dir, 'fastas')

@@ -1,5 +1,5 @@
 from schema import Schema, And, Optional, Or
-from .utils import is_valid_date
+from .utils import is_valid_date, get_cog_categories
 
 
 class Dummy:
@@ -72,6 +72,10 @@ genome_json_schema = Schema({
         Optional('dataset'): str,
         Optional('dataset_creation_date'): is_valid_date,
     }),
+    'COG': {
+        Optional(cog): Or(int, float)
+        for cog in get_cog_categories().keys()
+    },
     'bioproject_accession': Or(str, None),
     'biosample_accession': Or(str, None),
     'genome_accession': Or(str, None),
@@ -115,6 +119,7 @@ genome_json_dummy = {
     "assembly_fasta_file": dummy,
     "custom_annotations": [],
     "BUSCO": {},
+    "COG": {},
     "bioproject_accession": None,
     "biosample_accession": None,
     "genome_accession": None,

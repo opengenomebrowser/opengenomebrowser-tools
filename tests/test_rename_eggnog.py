@@ -51,6 +51,11 @@ class Test(TestCase):
             self.assertNotIn(member='tmp', container=content)
             self.assertGreater(a=count, b=400)
 
+    def test_cog_extraction(self):
+        for eggnog in eggnogs:
+            res = EggnogFile(file=eggnog).cog_categories()
+            self.assertGreater(len(res), 0)
+
     @classmethod
     def tearDownClass(cls) -> None:
         cleanup()

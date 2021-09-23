@@ -144,7 +144,8 @@ def import_orthofinder(
     :param which: either 'hog' for N0.tsv or 'og' for 'Orthogroups.tsv
     """
     if database_dir is None:
-        database_dir = os.environ.get('GENOMIC_DATABASE')
+        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
+        database_dir = os.environ['GENOMIC_DATABASE']
 
     if fasta_dir is None:
         fasta_dir = f'{database_dir}/OrthoFinder/fastas'

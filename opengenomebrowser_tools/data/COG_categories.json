@@ -1,0 +1,106 @@
+{
+    "J": {
+        "description": "Translation, ribosomal structure and biogenesis",
+        "color": "#fcccfc"
+    },
+    "A": {
+        "description": "RNA processing and modification",
+        "color": "#fcdcfc"
+    },
+    "K": {
+        "description": "Transcription",
+        "color": "#fcdcec"
+    },
+    "L": {
+        "description": "Replication, recombination and repair",
+        "color": "#fcdcdc"
+    },
+    "B": {
+        "description": "Chromatin structure and dynamics",
+        "color": "#fcdccc"
+    },
+    "D": {
+        "description": "Cell cycle control, cell division, chromosome partitioning",
+        "color": "#fcfcdc"
+    },
+    "Y": {
+        "description": "Nuclear structure",
+        "color": "#fcfccc"
+    },
+    "V": {
+        "description": "Defense mechanisms",
+        "color": "#fcfcbc"
+    },
+    "T": {
+        "description": "Signal transduction mechanisms",
+        "color": "#fcfcac"
+    },
+    "M": {
+        "description": "Cell wall/membrane/envelope biogenesis",
+        "color": "#ecfcac"
+    },
+    "N": {
+        "description": "Cell motility",
+        "color": "#dcfcac"
+    },
+    "Z": {
+        "description": "Cytoskeleton",
+        "color": "#ccfcac"
+    },
+    "W": {
+        "description": "Extracellular structures",
+        "color": "#bcfcac"
+    },
+    "U": {
+        "description": "Intracellular trafficking, secretion, and vesicular transport",
+        "color": "#acfcac"
+    },
+    "O": {
+        "description": "Posttranslational modification, protein turnover, chaperones",
+        "color": "#9cfcac"
+    },
+    "X": {
+        "description": "Mobilome: prophages, transposons",
+        "color": "#9cfc9c"
+    },
+    "C": {
+        "description": "Energy production and conversion",
+        "color": "#bcfcfc"
+    },
+    "G": {
+        "description": "Carbohydrate transport and metabolism",
+        "color": "#ccfcfc"
+    },
+    "E": {
+        "description": "Amino acid transport and metabolism",
+        "color": "#dcfcfc"
+    },
+    "F": {
+        "description": "Nucleotide transport and metabolism",
+        "color": "#dcecfc"
+    },
+    "H": {
+        "description": "Coenzyme transport and metabolism",
+        "color": "#dcdcfc"
+    },
+    "I": {
+        "description": "Lipid transport and metabolism",
+        "color": "#dcccfc"
+    },
+    "P": {
+        "description": "Inorganic ion transport and metabolism",
+        "color": "#ccccfc"
+    },
+    "Q": {
+        "description": "Secondary metabolites biosynthesis, transport and catabolism",
+        "color": "#bcccfc"
+    },
+    "R": {
+        "description": "General function prediction only",
+        "color": "#e0e0e0"
+    },
+    "S": {
+        "description": "Function unknown",
+        "color": "#cccccc"
+    }
+}

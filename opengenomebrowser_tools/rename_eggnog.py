@@ -1,13 +1,14 @@
+from re import compile
 from datetime import datetime
 from functools import cached_property
 
-from .utils import GenomeFile, split_locus_tag
+from .utils import GenomeFile, split_locus_tag, get_cog_categories
 
 EGGNOG_VERSIONS = {
     'eggnog-2.1.2':
-        '#query	seed_ortholog	evalue	score	eggNOG_OGs	max_annot_lvl	COG_category	Description	Preferred_name	GOs	EC	KEGG_ko	KEGG_Pathway	KEGG_Module	KEGG_Reaction	KEGG_rclass	BRITE	KEGG_TC	CAZy	BiGG_Reaction	PFAMs\n',
+        '#query\tseed_ortholog\tevalue\tscore\teggNOG_OGs\tmax_annot_lvl\tCOG_category\tDescription\tPreferred_name\tGOs\tEC\tKEGG_ko\tKEGG_Pathway\tKEGG_Module\tKEGG_Reaction\tKEGG_rclass\tBRITE\tKEGG_TC\tCAZy\tBiGG_Reaction\tPFAMs\n',
     'eggnog':
-        '#query_name	seed_eggNOG_ortholog	seed_ortholog_evalue	seed_ortholog_score	best_tax_level	Preferred_name	GOs	EC	KEGG_ko	KEGG_Pathway	KEGG_Module	KEGG_Reaction	KEGG_rclass	BRITE	KEGG_TC	CAZy	BiGG_Reaction\n',
+        '#query_name\tseed_eggNOG_ortholog\tseed_ortholog_evalue\tseed_ortholog_score\tbest_tax_level\tPreferred_name\tGOs\tEC\tKEGG_ko\tKEGG_Pathway\tKEGG_Module\tKEGG_Reaction\tKEGG_rclass\tBRITE\tKEGG_TC\tCAZy\tBiGG_Reaction\n',
 }
 
 
@@ -91,6 +92,40 @@ class EggnogFile(GenomeFile):
                 assert real_locus_tag_prefix == locus_tag_prefix, \
                     f'locus_tag_prefix in {self.path=} does not match. expected: {locus_tag_prefix} reality: {real_locus_tag_prefix}'
                 assert gene_id.isdigit(), f'locus_tag in {self.path=} is malformed. expected: {locus_tag_prefix}_[0-9]+ reality: {locus_tag}'
+
+    def cog_categories(self) -> dict:
+        cog_categories = get_cog_categories()
+
+        re_categories = compile(pattern=f"-|[{''.join(cog_categories.keys())}]+")
+
+        cog_to_count = {cat: 0 for cat in cog_categories.keys()}
+        cog_to_count['-'] = 0  # eggnog assigns '-' sometimes; surely it means the same as 'S': Function unknown
+        n_genes = 0
+
+        with open(self.path) as f:
+            for line in f:
+                if line.startswith('#'):
+                    continue
+                n_genes += 1
+
+                cog_cats = line.split('\t')[6]
+
+                assert re_categories.fullmatch(cog_cats) is not None, f'Failed to interpret "{cog_cats}" as COG categories. {self.path=} {line=}'
+
+                weight = 1 / len(cog_cats)
+                for cog_cat in cog_cats:
+                    cog_to_count[cog_cat] += weight
+
+        # merge '-' and 'S'
+        cog_to_count['S'] += cog_to_count['-']
+        del cog_to_count['-']
+
+        # remove empty categories
+        cog_to_count = {cog_cat: count for cog_cat, count in cog_to_count.items() if count != 0}
+
+        assert n_genes == round(sum(cog_to_count.values()))
+
+        return cog_to_count
 
 
 def rename_eggnog(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False):

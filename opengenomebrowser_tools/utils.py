@@ -1,20 +1,25 @@
-import os
-import re
 import gzip
 import json
 import logging
-from string import digits
+import os
+import re
 from datetime import datetime
+from string import digits
 from typing import Union, Callable
 
-from termcolor import colored
 from Bio import Entrez
+from termcolor import colored
 
 DATE_FORMAT = '%Y-%m-%d'
 TMPDIR = os.environ.get('TMPDIR', '/tmp')
 Entrez.email = os.environ.get('ENTREZ_EMAIL', 'opengenomebrowser@bioinformatics.unibe.ch')
 
-PACKAGE_ROOT = os.path.dirname(os.path.dirname(__file__))
+PACKAGE_ROOT = os.path.dirname(__file__)
+
+ANNOTATIONS_JSON = f'{PACKAGE_ROOT}/data/annotations.json'
+COG_CATEGORIES_JSON = f'{PACKAGE_ROOT}/data/COG_categories.json'
+for f in [ANNOTATIONS_JSON, COG_CATEGORIES_JSON]:
+    assert os.path.isfile(f), f'Package is poorly configured: file is missing: {f}'
 
 
 class GenomeFile:
@@ -122,6 +127,31 @@ def is_valid_date(date: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+def get_cog_categories(reload: bool = False) -> dict:
+    file = f'{PACKAGE_ROOT}/data/COG_categories.json'
+
+    if not reload and os.path.isfile(file):
+        with open(file) as f:
+            cog_categories = json.load(f)
+        return cog_categories
+
+    else:
+        from urllib import request
+        with request.urlopen('https://ftp.ncbi.nih.gov/pub/COG/COG2020/data/fun-20.tab') as f:
+            content = f.read().decode('utf-8').strip()
+
+        def extract_cat(line: str) -> (str, dict):
+            cat, color, description = line.split('\t')
+            return cat, {'description': description, 'color': f'#{color.lower()}'}
+
+        cog_categories = dict(extract_cat(cat) for cat in content.split('\n'))
+
+        with open(file, 'w') as f:
+            json.dump(cog_categories, f, indent=4)
+
+        return cog_categories
 
 
 def _get_cache_json(cache_file: str) -> dict:

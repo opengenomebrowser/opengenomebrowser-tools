@@ -99,7 +99,8 @@ def init_database(database_dir: str = None) -> None:
     :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Will contain 'organisms' folder.)
     """
     if database_dir is None:
-        database_dir = os.environ.get('GENOMIC_DATABASE')
+        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
+        database_dir = os.environ['GENOMIC_DATABASE']
 
     assert os.path.isdir(os.path.dirname(database_dir)), f'Parent dir of {database_dir=} does not exist!'
     assert not os.path.exists(database_dir), f'Error: {database_dir=} already exist!'
