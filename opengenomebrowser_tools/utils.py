@@ -231,3 +231,30 @@ def merge_json(json: dict, new: str = None) -> dict:
         with open(new) as f:
             json.update(json.load(f))
     return json
+
+
+def get_folder_structure_version(database_dir: str) -> int:
+    """
+    Determine current folder structure version. (Read database/version.json)
+
+    :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
+    :return: version (integer)
+    """
+    assert type(database_dir) is str
+    version_file = f'{database_dir}/version.json'
+
+    if not os.path.isfile(version_file):
+        with open(version_file, 'w') as f:
+            json.dump({'folder_structure_version': 1}, f, indent=4)
+
+    try:
+        with open(version_file) as f:
+            version_dict = json.load(f)
+    except Exception as e:
+        raise AssertionError(f'Failed to {version_file} as json: {str(e)}')
+
+    assert 'folder_structure_version' in version_dict, f"Key 'folder_structure_version' missing in {version_file}"
+    version = version_dict['folder_structure_version']
+    assert type(version) is int, f"Key 'folder_structure_version' in {version_file} must be an integer!"
+
+    return version

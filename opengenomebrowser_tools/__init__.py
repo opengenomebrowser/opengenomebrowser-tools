@@ -1,4 +1,5 @@
 __version__ = '0.0.3'
+__folder_structure_version__ = 2
 
 from .genbank_to_fasta import GenBankToFasta
 from .import_genome import OgbImporter

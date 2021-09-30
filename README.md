@@ -445,3 +445,15 @@ python db_setup/manage_ogb.py import-orthologs
 ```
 
 </details>
+
+## `update_folder_structure`
+
+From time to time, changes are made to the OpenGenomeBrowser folder structure. Use this script to apply these changes.
+
+<details>
+  <summary>More details:</summary>
+
+- `1_to_2`: add `COG` to genome.json
+
+</details>
+

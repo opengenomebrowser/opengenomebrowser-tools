@@ -1,7 +1,9 @@
 import os
+import json
 import shutil
 from urllib import request
 from .utils import PACKAGE_ROOT
+from . import __folder_structure_version__
 
 
 def download_go_data(out: str) -> None:
@@ -107,6 +109,10 @@ def init_database(database_dir: str = None) -> None:
 
     # make main dir
     os.makedirs(database_dir)
+
+    # set version
+    with open(f'{database_dir}/version.json') as f:
+        json.dump({'folder_structure_version': __folder_structure_version__}, f, indent=4)
 
     # make organisms dir (empty)
     os.makedirs(f'{database_dir}/organisms')

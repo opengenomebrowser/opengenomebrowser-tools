@@ -9,7 +9,8 @@ from textwrap import shorten
 from typing import Union, Optional
 from schema import SchemaError
 
-from .utils import entrez_organism_to_taxid, GenomeFile, merge_json
+from . import __folder_structure_version__
+from .utils import entrez_organism_to_taxid, GenomeFile, merge_json, get_folder_structure_version
 from .rename_genbank import GenBankFile
 from .rename_gff import GffFile
 from .rename_fasta import FastaFile
@@ -192,7 +193,6 @@ class OgbImporter:
     def load_cog_metadata(self) -> dict:
         for file in self.custom_annotations:
             if type(file) is EggnogFile:
-                print('XXXXXXXX', file)
                 try:
                     cog = file.cog_categories()
                     return {'COG': cog}
@@ -431,6 +431,12 @@ def import_genome(
     if database_dir is None:
         assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
         database_dir = os.environ['GENOMIC_DATABASE']
+
+    current_folder_structure_version = get_folder_structure_version(database_dir)
+    assert current_folder_structure_version == __folder_structure_version__, \
+        f'Before importing any genomes, the folder structure needs to be updated to match OpenGenomeBrowser Tools.\n' \
+        f'Current version: {current_folder_structure_version}, expected: {__folder_structure_version__}\n' \
+        f'Use the script update_folder_structure perform the upgrade!'
 
     ogb_importer = OgbImporter(database_dir=database_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
 
