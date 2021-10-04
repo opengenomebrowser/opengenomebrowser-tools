@@ -111,7 +111,7 @@ def init_database(database_dir: str = None) -> None:
     os.makedirs(database_dir)
 
     # set version
-    with open(f'{database_dir}/version.json') as f:
+    with open(f'{database_dir}/version.json', 'w') as f:
         json.dump({'folder_structure_version': __folder_structure_version__}, f, indent=4)
 
     # make organisms dir (empty)
