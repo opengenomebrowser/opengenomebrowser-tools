@@ -448,7 +448,8 @@ python db_setup/manage_ogb.py import-orthologs
 
 ## `update_folder_structure`
 
-From time to time, changes are made to the OpenGenomeBrowser folder structure. Use this script to apply these changes.
+From time to time, changes are made to the OpenGenomeBrowser folder structure. The current version of your folder structure is denoted
+in `version.json`. Use this script to upgrade to a new version.
 
 <details>
   <summary>More details:</summary>
