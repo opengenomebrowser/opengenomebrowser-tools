@@ -1,6 +1,6 @@
 # based on https://realpython.com/pypi-publish-python-package
 import pathlib
-from setuptools import setup, find_packages
+from setuptools import setup
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent

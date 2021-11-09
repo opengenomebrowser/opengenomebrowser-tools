@@ -86,6 +86,7 @@ Suppose the desired organism name is `STRAIN`, the genome identifier is `STRAIN.
 prokka \
   --strain STRAIN \ 
   --locustag STRAIN.1 \
+  --prefix STRAIN.1 \
   --genus Mycoplasma --species genitalium \  # Optional. If set, this script can automatically detect the taxid.
   --out /prokka/out/dir \
   assembly.fasta
