@@ -28,7 +28,7 @@ def init_orthofinder(database_dir: str = None, skip_ignored: bool = True, sanity
         os.symlink(src=rel_path, dst=f'{fasta_dir}/{genome.identifier}.faa')
         n_faas += 1
 
-    cmd = f'orthofinder -f f{fasta_dir}'
+    cmd = f'orthofinder -f {fasta_dir}'
     container_cmd = f'-it --rm -v {database_dir}:/input:Z davidemms/orthofinder orthofinder -f /input/OrthoFinder/fastas'
     podman_cmd = f'podman run --ulimit=host {container_cmd}'
     docker_cmd = f'docker run --ulimit nofile=1000000:1000000 {container_cmd}'
