@@ -62,7 +62,7 @@ class GffFile(GenomeFile):
     def _extract_gff_data(line: str) -> dict:
         line = line.rstrip('\n').split('\t')
         assert len(line) == 9, f'gff line is malformed! {len(line)=} {line=}'
-        return dict(info.split('=', 1) for info in line[8].split(';'))
+        return dict(info.split('=', 1) for info in line[8].split(';') if '=' in line)
 
     @classmethod
     def _extract_gff_locus_tag(cls, line: str) -> (str, str):

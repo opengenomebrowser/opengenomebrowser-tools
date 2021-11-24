@@ -32,7 +32,7 @@ def download_ncbi_file(record_id: str, out: str, file: str):
 
     # extract ftp link
     url = summary['DocumentSummarySet']['DocumentSummary'][0]['FtpPath_RefSeq']
-    assert url.startswith('ftp://ftp.ncbi.nlm.nih.gov/genomes')
+    assert url.startswith('ftp://ftp.ncbi.nlm.nih.gov/genomes'), f'Url does not match: {url=}'
     assembly_label = os.path.basename(url)
     ftp_link = os.path.join(url, assembly_label + file)
     logging.info(f'Extracted {ftp_link=} from {record_id=}')

@@ -12,7 +12,7 @@ README = (HERE / 'README.md').read_text()
 setup(
     name='opengenomebrowser-tools',
     version='0.0.3',
-    description=' Set of scripts to aid OpenGenomeBrowser administrators import data',
+    description='Set of scripts to aid OpenGenomeBrowser administrators import data',
     long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/opengenomebrowser/opengenomebrowser-tools',
