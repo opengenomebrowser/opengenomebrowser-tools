@@ -4,3 +4,6 @@
 __pycache__
 esummary_assembly.dtd
 /esummary_biosample.dtd
+/temp/
+/build/
+/opengenomebrowser_tools.egg-info/

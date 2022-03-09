@@ -6,7 +6,13 @@ class NoLocusTagInGffLine(KeyError):
 
 
 class GffFile(GenomeFile):
-    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False) -> None:
+    def rename(
+            self,
+            out: str,
+            new_locus_tag_prefix: str,
+            old_locus_tag_prefix: str = None,
+            validate: bool = False
+    ) -> None:
         old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
 
         with open(self.path) as in_f:
@@ -62,7 +68,7 @@ class GffFile(GenomeFile):
     def _extract_gff_data(line: str) -> dict:
         line = line.rstrip('\n').split('\t')
         assert len(line) == 9, f'gff line is malformed! {len(line)=} {line=}'
-        return dict(info.split('=', 1) for info in line[8].split(';') if '=' in line)
+        return dict(info.split('=', 1) for info in line[8].split(';') if '=' in info)
 
     @classmethod
     def _extract_gff_locus_tag(cls, line: str) -> (str, str):
@@ -75,7 +81,12 @@ class GffFile(GenomeFile):
         return locus_tag_prefix, gene_id
 
 
-def rename_gff(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False):
+def rename_gff(
+        file: str, out: str,
+        new_locus_tag_prefix: str,
+        old_locus_tag_prefix: str = None,
+        validate: bool = False
+):
     """
     Change the locus tags in a general feature format (gff) file
 

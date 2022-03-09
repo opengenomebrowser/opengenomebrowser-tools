@@ -163,7 +163,7 @@ class OgbImporter:
         except FileNotFoundError:
             return organism_yaml, genome_yaml
         with open(submol_yaml.path) as f:
-            submol_yaml = yaml.load(f)
+            submol_yaml = yaml.safe_load(f)
 
         if 'organism' in submol_yaml and 'genus_species' in submol_yaml['organism']:
             organism_yaml['taxid'] = entrez_organism_to_taxid(submol_yaml['organism']['genus_species'])
