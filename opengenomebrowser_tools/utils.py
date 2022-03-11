@@ -226,11 +226,11 @@ def decompress_gz(gz: str, out: str):
             f_out.write(line.decode('utf-8'))
 
 
-def merge_json(json: dict, new: str = None) -> dict:
+def merge_json(dict_: dict, new: str = None) -> dict:
     if new is not None and os.path.isfile(new):
         with open(new) as f:
-            json.update(json.load(f))
-    return json
+            dict_.update(json.load(f))
+    return dict_
 
 
 def get_folder_structure_version(database_dir: str) -> int:
