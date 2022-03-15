@@ -11,7 +11,7 @@ README = (HERE / 'README.md').read_text()
 # This call to setup() does all the work
 setup(
     name='opengenomebrowser-tools',
-    version='0.0.3',
+    version='0.0.4',
     description='Set of scripts to aid OpenGenomeBrowser administrators import data',
     long_description=README,
     long_description_content_type='text/markdown',
