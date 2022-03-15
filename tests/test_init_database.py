@@ -2,41 +2,41 @@ from unittest import TestCase
 import os
 import shutil
 import logging
-from opengenomebrowser_tools.init_database import init_database
+from opengenomebrowser_tools.init_folder_structure import init_folder_structure
 
 logging.basicConfig(level=logging.INFO)
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
-GENOMIC_DATABASE = f'{ROOT}/database'
+FOLDER_STRUCTURE = f'{ROOT}/folder_structure'
 
 
 def cleanup():
-    if os.path.isdir(GENOMIC_DATABASE):
-        shutil.rmtree(GENOMIC_DATABASE)
+    if os.path.isdir(FOLDER_STRUCTURE):
+        shutil.rmtree(FOLDER_STRUCTURE)
 
 
 class Test(TestCase):
     def test_init_orthofinder(self):
-        init_database(database_dir=GENOMIC_DATABASE)
+        init_folder_structure(folder_structure_dir=FOLDER_STRUCTURE)
 
         for dir in [
-            GENOMIC_DATABASE,
-            f'{GENOMIC_DATABASE}/organisms',
-            f'{GENOMIC_DATABASE}/orthologs',
-            f'{GENOMIC_DATABASE}/annotation-descriptions',
-            f'{GENOMIC_DATABASE}/pathway-maps',
-            f'{GENOMIC_DATABASE}/pathway-maps/svg',
+            FOLDER_STRUCTURE,
+            f'{FOLDER_STRUCTURE}/organisms',
+            f'{FOLDER_STRUCTURE}/orthologs',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions',
+            f'{FOLDER_STRUCTURE}/pathway-maps',
+            f'{FOLDER_STRUCTURE}/pathway-maps/svg',
         ]:
             self.assertTrue(os.path.isdir(dir))
 
         for file in [
-            f'{GENOMIC_DATABASE}/annotations.json',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/SL.tsv',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/GO.tsv',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/EC.tsv',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/KG.tsv',
-            f'{GENOMIC_DATABASE}/annotation-descriptions/KR.tsv',
-            f'{GENOMIC_DATABASE}/pathway-maps/type_dictionary.json',
+            f'{FOLDER_STRUCTURE}/annotations.json',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions/SL.tsv',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions/GO.tsv',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions/EC.tsv',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions/KG.tsv',
+            f'{FOLDER_STRUCTURE}/annotation-descriptions/KR.tsv',
+            f'{FOLDER_STRUCTURE}/pathway-maps/type_dictionary.json',
         ]:
             self.assertTrue(os.path.isfile(file), msg=f'File does not exist: {file=}')
 

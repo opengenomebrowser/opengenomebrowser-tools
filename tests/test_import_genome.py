@@ -8,14 +8,14 @@ from opengenomebrowser_tools.import_genome import import_genome, ImportSettings
 logging.basicConfig(level=logging.INFO)
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
-GENOMIC_DATABASE = f'{ROOT}/database'
-ORAGNISMS_DIR = f'{GENOMIC_DATABASE}/organisms'
+FOLDER_STRUCTURE = f'{ROOT}/folder_structure'
+ORAGNISMS_DIR = f'{FOLDER_STRUCTURE}/organisms'
 TO_DELETE = [
     f'{ROOT}/test-data/pgap-bad/annot.ffn',
     f'{ROOT}/test-data/pgap-good/annot.ffn',
 ]
 
-assert os.path.isdir(GENOMIC_DATABASE)
+assert os.path.isdir(FOLDER_STRUCTURE)
 
 
 def clean_up():
@@ -56,35 +56,52 @@ class Test(TestCase):
             res = import_settings.get_path(original_path='bla.yolo', genome='XXX', organism='YYY')
 
     def test_import_pgap_good(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-good')
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-good')
 
     def test_import_pgap_bad(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN',
+                      genome='STRAIN.1', rename=True)
 
     def test_import_prokka_good(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good')
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/prokka-good')
 
     def test_import_prokka_bad(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/prokka-bad',
+                      organism='STRAIN', genome='STRAIN.1', rename=True)
+
+    def test_import_no_underline(self):
+        import_genome(
+            import_dir=f'{ROOT}/test-data/no-underline',
+            folder_structure_dir=FOLDER_STRUCTURE,
+            organism='BLU',
+            genome='BLU.1',
+            rename=True,
+            check_files=True
+        )
 
     def test_import_conflict(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN',
+                      genome='STRAIN.1', rename=True)
         with self.assertRaises(AssertionError):
-            import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
+            import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-bad',
+                          organism='STRAIN', genome='STRAIN.1', rename=True)
 
     def test_import_conflict_solved(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.1', rename=True)
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN', genome='STRAIN.2', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN',
+                      genome='STRAIN.1', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/pgap-bad', organism='STRAIN',
+                      genome='STRAIN.2', rename=True)
 
     def test_import_advanced_config(self):
         import_genome(
-            database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/prokka-good',
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/prokka-good',
             import_settings=f'{ROOT}/test-data/alternative-config.json',
             organism='STRAIN', genome='STRAIN.1'
         )
 
     def test_import_ncbi(self):
-        import_genome(database_dir=GENOMIC_DATABASE, import_dir=f'{ROOT}/test-data/ncbi-convert', organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
+        import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/ncbi-convert',
+                      organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
 
     def setUp(self) -> None:
         clean_up()

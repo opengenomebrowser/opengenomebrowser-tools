@@ -126,7 +126,7 @@ class OrthogroupToGeneName:
 
 
 def import_orthofinder(
-        database_dir: str = None,
+        folder_structure_dir: str = None,
         fasta_dir: str = None,
         out_annotations: str = None,
         out_descriptions: str = None,
@@ -134,27 +134,27 @@ def import_orthofinder(
 ):
     """
     Creates two files:
-      - database/orthologs/orthologs.tsv
-      - database/annotation-descriptions/OL.tsv
+      - folder_structure/orthologs/orthologs.tsv
+      - folder_structure/annotation-descriptions/OL.tsv
 
-    :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
+    :param folder_structure_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
     :param fasta_dir: Path to the OrthoFinder FASTA dir
     :param out_annotations: Path to output annotation file (maps OG -> genes)
     :param out_descriptions: Path to output descriptions file (maps OG -> description)
     :param which: either 'hog' for N0.tsv or 'og' for 'Orthogroups.tsv
     """
-    if database_dir is None:
-        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
-        database_dir = os.environ['GENOMIC_DATABASE']
+    if folder_structure_dir is None:
+        assert 'FOLDER_STRUCTURE' in os.environ, f'Cannot find the folder_structure. Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
+        folder_structure_dir = os.environ['FOLDER_STRUCTURE']
 
     if fasta_dir is None:
-        fasta_dir = f'{database_dir}/OrthoFinder/fastas'
+        fasta_dir = f'{folder_structure_dir}/OrthoFinder/fastas'
 
     if out_descriptions is None:
-        out_descriptions = f'{database_dir}/annotation-descriptions/OL.tsv'  # is AnnotationDescriptionFile, maps OG -> description
+        out_descriptions = f'{folder_structure_dir}/annotation-descriptions/OL.tsv'  # is AnnotationDescriptionFile, maps OG -> description
 
     if out_annotations is None:
-        out_annotations = f'{database_dir}/orthologs/orthologs.tsv'  # is CustomAnnotationsFile, maps HOG -> [gene]
+        out_annotations = f'{folder_structure_dir}/orthologs/orthologs.tsv'  # is CustomAnnotationsFile, maps HOG -> [gene]
 
     assert os.path.isdir(fasta_dir), f'Error: directory does not exist: {fasta_dir=}'
     assert os.path.isdir(f'{fasta_dir}/OrthoFinder'), f'Error: {fasta_dir=} contains no OrthoFinder directory. You must run OrthoFinder first!'

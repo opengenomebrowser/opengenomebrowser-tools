@@ -1,8 +1,11 @@
+import logging
+
 from .utils import GenomeFile, split_locus_tag
 
 
 class FastaFile(GenomeFile):
-    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False) -> None:
+    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None,
+               validate: bool = False) -> None:
         old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
 
         with open(self.path) as in_f:
@@ -14,7 +17,8 @@ class FastaFile(GenomeFile):
                     f'Fasta header does not contain old_locus_tag_prefix! {old_locus_tag_prefix=}, {line=}, fasta={self.path}'
                 return line \
                     .replace(old_locus_tag_prefix, new_locus_tag_prefix, 1) \
-                    .replace(f'hypothetical protein {old_locus_tag_prefix}', f'hypothetical protein {new_locus_tag_prefix}')
+                    .replace(f'hypothetical protein {old_locus_tag_prefix}',
+                             f'hypothetical protein {new_locus_tag_prefix}')
             else:
                 return line
 
@@ -37,7 +41,8 @@ class FastaFile(GenomeFile):
                 locus_tag_prefix, gene_id = self.parse_fasta_header(line)
                 return locus_tag_prefix
 
-        raise KeyError(f'Could not extract locus_tag from {self.path=}, it does not appear to contain a header line (>)!')
+        raise KeyError(
+            f'Could not extract locus_tag from {self.path=}, it does not appear to contain a header line (>)!')
 
     def validate_locus_tags(self, locus_tag_prefix: str = None):
         with open(self.path) as f:
@@ -53,7 +58,8 @@ class FastaFile(GenomeFile):
         header = header.rstrip()
         error_message = f'This fasta file does not start with gene identifiers (>gene-identifier_00001)! {header=}'
         assert header.startswith('>'), error_message
-        assert '_' in header, error_message
+        if not '_' in header:
+            logging.warning(error_message)
         locus_tag = header[1:].split(' ', 1)[0]
         locus_tag_prefix, gene_id = split_locus_tag(locus_tag)
         assert ' ' not in locus_tag_prefix and len(locus_tag_prefix) > 0, error_message
@@ -61,7 +67,8 @@ class FastaFile(GenomeFile):
         return locus_tag_prefix, gene_id
 
 
-def rename_fasta(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False):
+def rename_fasta(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None,
+                 validate: bool = False):
     """
     Change the locus tags in a protein/nucleotide FASTA file
 

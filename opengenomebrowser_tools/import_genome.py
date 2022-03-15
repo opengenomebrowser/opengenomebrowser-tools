@@ -83,18 +83,18 @@ class OgbImporter:
     genome_json: dict = None
     organism_json: dict = None
 
-    def __init__(self, database_dir: str, import_dir: str, organism: str = None, genome: str = None, import_settings: str = None):
+    def __init__(self, folder_structure_dir: str, import_dir: str, organism: str = None, genome: str = None, import_settings: str = None):
         """
         Easily import files into the OpenGenomeBrowser folder structure.
 
         :param import_dir: Folder with files to import. Required: [.fna, .faa, .gbk, .gff] Optional: [.ffn, .sqn, custom-annotation-files]
-        :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
+        :param folder_structure_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
         :param organism: Name of the organism.
         :param genome: Identifier of the genome. Must start with organism. May be identical to organism.
         :param rename: Locus tag prefixes must match the genome identifier. If this is not the case, this script can automatically rename relevant files.
         :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
         """
-        assert database_dir is not None and os.path.isdir(database_dir), f'Cannot import PGAP files: {database_dir=} does not exist.'
+        assert folder_structure_dir is not None and os.path.isdir(folder_structure_dir), f'Cannot import PGAP files: {folder_structure_dir=} does not exist.'
         assert os.path.isdir(import_dir), f'Cannot import PGAP files: {import_dir=} does not exist.'
 
         self.import_settings = ImportSettings(import_settings)
@@ -102,9 +102,9 @@ class OgbImporter:
         self.tempdir = tempfile.TemporaryDirectory()
 
         self.import_dir = import_dir
-        self.database_dir = database_dir
-        self.organisms_dir = f'{database_dir}/organisms'
-        assert os.path.isdir(self.organisms_dir), f'{database_dir=} does not point to a directory that contains an organisms-folder!'
+        self.folder_structure_dir = folder_structure_dir
+        self.organisms_dir = f'{folder_structure_dir}/organisms'
+        assert os.path.isdir(self.organisms_dir), f'{folder_structure_dir=} does not point to a directory that contains an organisms-folder!'
 
         files = os.listdir(import_dir)
         self.fna = self.find_file(files, '.fna', FastaFile)  # assembly
@@ -410,7 +410,7 @@ class OgbImporter:
 
 def import_genome(
         import_dir: str,
-        database_dir: str = None,
+        folder_structure_dir: str = None,
         organism: str = None,
         genome: str = None,
         rename: bool = False,
@@ -421,24 +421,24 @@ def import_genome(
     Easily import files into OpenGenomeBrowser folder structure.
 
     :param import_dir: Folder with files to import. Required: [.fna, .faa, .gbk, .gff] Optional: [.ffn, .sqn, custom-annotation-files]
-    :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
+    :param folder_structure_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
     :param organism: Name of the organism.
     :param genome: Identifier of the genome. Must start with organism. May be identical to organism.
     :param rename: Locus tag prefixes must match the genome identifier. If this is not the case, this script can automatically rename relevant files.
     :param check_files: If true, check if locus tag prefixes match genome identifier.
     :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
     """
-    if database_dir is None:
-        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
-        database_dir = os.environ['GENOMIC_DATABASE']
+    if folder_structure_dir is None:
+        assert 'FOLDER_STRUCTURE' in os.environ, f'Cannot find the folder_structure. Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
+        folder_structure_dir = os.environ['FOLDER_STRUCTURE']
 
-    current_folder_structure_version = get_folder_structure_version(database_dir)
+    current_folder_structure_version = get_folder_structure_version(folder_structure_dir)
     assert current_folder_structure_version == __folder_structure_version__, \
         f'Before importing any genomes, the folder structure needs to be updated to match OpenGenomeBrowser Tools.\n' \
         f'Current version: {current_folder_structure_version}, expected: {__folder_structure_version__}\n' \
         f'Use the script update_folder_structure perform the upgrade!'
 
-    ogb_importer = OgbImporter(database_dir=database_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
+    ogb_importer = OgbImporter(folder_structure_dir=folder_structure_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
 
     if rename:
         ogb_importer.rename_all(new_locus_tag_prefix=f'{ogb_importer.genome}_')

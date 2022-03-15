@@ -7,17 +7,17 @@ from .rename_eggnog import EggnogFile
 from .utils import query_yes_no, get_folder_structure_version
 
 
-def _get_database_dir(database_dir: str = None) -> str:
-    if database_dir is None:
-        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
-        database_dir = os.environ['GENOMIC_DATABASE']
-    assert os.path.isdir(database_dir), f'Could not find the database. Folder does not exist: {database_dir}'
-    return database_dir
+def _get_folder_structure_dir(folder_structure_dir: str = None) -> str:
+    if folder_structure_dir is None:
+        assert 'FOLDER_STRUCTURE' in os.environ, f'Cannot find the folder_structure. Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
+        folder_structure_dir = os.environ['FOLDER_STRUCTURE']
+    assert os.path.isdir(folder_structure_dir), f'Could not find the folder_structure. Folder does not exist: {folder_structure_dir}'
+    return folder_structure_dir
 
 
-def set_folder_structure_version(new_version: int, database_dir: str) -> None:
-    assert type(database_dir) is str
-    version_file = f'{database_dir}/version.json'
+def set_folder_structure_version(new_version: int, folder_structure_dir: str) -> None:
+    assert type(folder_structure_dir) is str
+    version_file = f'{folder_structure_dir}/version.json'
 
     with open(version_file) as f:
         version_dict = json.load(f)
@@ -31,13 +31,13 @@ def set_folder_structure_version(new_version: int, database_dir: str) -> None:
     print(f'Successfully updated to folder structure version {new_version}!')
 
 
-def ask(v_from: int, v_to: int, actions: [str], database_dir: str):
-    assert type(database_dir) is str
+def ask(v_from: int, v_to: int, actions: [str], folder_structure_dir: str):
+    assert type(folder_structure_dir) is str
 
-    current_version = get_folder_structure_version(database_dir)
+    current_version = get_folder_structure_version(folder_structure_dir)
     assert current_version == v_from, \
         f'Cannot proceed: Folder structure version mismatch.\n' \
-        f'This script expects version {v_from}, but database/version.json says version {current_version}.'
+        f'This script expects version {v_from}, but folder_structure/version.json says version {current_version}.'
 
     question = f'Upgrade folder structure from version {v_from} to {v_to}:'
     for action in actions:
@@ -47,8 +47,8 @@ def ask(v_from: int, v_to: int, actions: [str], database_dir: str):
         exit(1)
 
 
-def loop_genomes(database_dir: str, skip_ignored=False, sanity_check=False, representatives_only=False) -> [FolderGenome]:
-    for genome in FolderLooper(database_dir=database_dir).genomes(
+def loop_genomes(folder_structure_dir: str, skip_ignored=False, sanity_check=False, representatives_only=False) -> [FolderGenome]:
+    for genome in FolderLooper(folder_structure_dir=folder_structure_dir).genomes(
             skip_ignored=skip_ignored,
             sanity_check=sanity_check,
             representatives_only=representatives_only
@@ -57,15 +57,15 @@ def loop_genomes(database_dir: str, skip_ignored=False, sanity_check=False, repr
             yield genome
 
 
-def from_1_to_2(database_dir: str = None, skip_ignored=False, sanity_check=False, representatives_only=False):
+def from_1_to_2(folder_structure_dir: str = None, skip_ignored=False, sanity_check=False, representatives_only=False):
     """ Upgrade OpenGenomeBrowser folder structure. """
-    database_dir = _get_database_dir(database_dir)
+    folder_structure_dir = _get_folder_structure_dir(folder_structure_dir)
     v_from = 1
     v_to = 2
 
-    ask(v_from=v_from, v_to=v_to, actions=['add COG to genome.json'], database_dir=database_dir)
+    ask(v_from=v_from, v_to=v_to, actions=['add COG to genome.json'], folder_structure_dir=folder_structure_dir)
 
-    for genome in loop_genomes(database_dir=database_dir, skip_ignored=skip_ignored, sanity_check=sanity_check,
+    for genome in loop_genomes(folder_structure_dir=folder_structure_dir, skip_ignored=skip_ignored, sanity_check=sanity_check,
                                representatives_only=representatives_only):
         genome_json = genome.json
         if 'COG' in genome_json:
@@ -87,7 +87,7 @@ def from_1_to_2(database_dir: str = None, skip_ignored=False, sanity_check=False
         genome_json['COG'] = COG
         genome.replace_json(genome_json)
 
-    set_folder_structure_version(new_version=v_to, database_dir=database_dir)
+    set_folder_structure_version(new_version=v_to, folder_structure_dir=folder_structure_dir)
 
 
 def main():

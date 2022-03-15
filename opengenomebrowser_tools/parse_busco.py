@@ -18,7 +18,8 @@ def parse_busco(file: str) -> dict:
 
     error_msg = F'Error while parsing BUSCO: {file} - {busco_dict}'
 
-    busco_file = open(file).readlines()
+    with open(file) as f:
+        busco_file = f.readlines()
 
     for line in busco_file:
         for descr, abbr in entries:

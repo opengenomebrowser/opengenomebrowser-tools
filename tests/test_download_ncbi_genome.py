@@ -7,14 +7,14 @@ from opengenomebrowser_tools.download_ncbi_genome import get_record_id, download
 logging.basicConfig(level=logging.INFO)
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
-GENOMIC_DATABASE = f'{ROOT}/database'
-ORAGNISMS_DIR = f'{GENOMIC_DATABASE}/organisms'
+FOLDER_STRUCTURE = f'{ROOT}/folder_structure'
+ORAGNISMS_DIR = f'{FOLDER_STRUCTURE}/organisms'
 
 ASSEMBLIES = [('FAM3257', 'GCF_005864195.1', 'FEZ40_RS')]
 DOWNLOAD_DIR = f'{ROOT}/test-data/ncbi-download'
 CONVERT_DIR = f'{ROOT}/test-data/ncbi-convert'
 
-assert os.path.isdir(GENOMIC_DATABASE)
+assert os.path.isdir(FOLDER_STRUCTURE)
 
 
 def remove_if_exists(file: str):

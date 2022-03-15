@@ -18,7 +18,7 @@ All scripts have a help function, for example:
 import_genome --help
 ```
 
-## `init_database`
+## `init_folder_structure`
 
 Creates a basic OpenGenomeBrowser folders structure.
 
@@ -35,15 +35,15 @@ Once the folder structure has been initiated...
 Usage:
 
 ```shell
-export GENOMIC_DATABASE=/path/to/database
-init_database  # or --database_dir=/path/to/database
+export FOLDER_STRUCTURE=/path/to/folder_structure
+init_folder_structure  # or --folder_structure_dir=/path/to/folder_structure
 ```
 
 <details>
   <summary>Result:</summary>
 
 ```
-  database
+  folder_structure
   ├── organisms
   ├── annotations.json
   ├── annotation-descriptions
@@ -73,7 +73,7 @@ If the annotation was performed using the proper organism name, genome identifie
 straightforward because no files need to be renamed.
 
 ```shell
-export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organisms' folder
+export FOLDER_STRUCTURE=/path/to/folder_structure   # this directory contains the 'organisms' folder
 import_genome --import_dir=/prokka/out/dir  # optional: add "--organism STRAIN --genome STRAIN.1" as sanity check
 ```
 
@@ -120,7 +120,7 @@ Should the locus tags not start with the genome identifier, the files need to be
 automatically sung the `--rename` flag.
 
 ```shell
-export GENOMIC_DATABASE=/path/to/database   # this directory contains the 'organisms' folder
+export FOLDER_STRUCTURE=/path/to/folder_structure   # this directory contains the 'organisms' folder
 import_genome --import_dir=/prokka/out/dir --organism STRAIN --genome STRAIN.1 --rename
 ```
 
@@ -152,7 +152,7 @@ Optional files:
 
 ```text
 #### folder structure ####
-database
+folder_structure
 └── organisms
     └── STRAIN
         ├── organism.json
@@ -258,7 +258,7 @@ Result:
 
 ```text
 #### folder structure ####
-database
+folder_structure
 └── organisms
     └── STRAIN
        ├── organism.json
@@ -396,7 +396,7 @@ import_genome --import_dir=/path/to/outdir --organism FAM3257 --genome FAM3257
 
 ## `init_orthofinder`
 
-This script collects the protein FASTAs in `database/OrthoFinder/fastas` and prints the command to run OrthoFinder.
+This script collects the protein FASTAs in `folder_structure/OrthoFinder/fastas` and prints the command to run OrthoFinder.
 
 <details>
   <summary>More details:</summary>
@@ -404,14 +404,14 @@ This script collects the protein FASTAs in `database/OrthoFinder/fastas` and pri
 Usage:
 
 ```shell
-export GENOMIC_DATABASE=/path/to/database
+export FOLDER_STRUCTURE=/path/to/folder_structure
 init_orthofinder --representatives_only
 ```
 
 Result:
 
 ```
-  database
+  folder_structure
   ├── ...
   └── OrthoFinder
       └── fastas
@@ -435,7 +435,7 @@ The output of OrthoFinder needs to be processed for OpenGenomeBrowser. This scri
 Usage:
 
 ```shell
-export GENOMIC_DATABASE=/path/to/database
+export FOLDER_STRUCTURE=/path/to/folder_structure
 import_orthofinder --which hog  # 'hog' for hierarchical orthogroups and 'og' for regular orthogroups
 ```
 

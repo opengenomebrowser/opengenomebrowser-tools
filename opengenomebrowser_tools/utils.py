@@ -233,15 +233,15 @@ def merge_json(dict_: dict, new: str = None) -> dict:
     return dict_
 
 
-def get_folder_structure_version(database_dir: str) -> int:
+def get_folder_structure_version(folder_structure_dir: str) -> int:
     """
-    Determine current folder structure version. (Read database/version.json)
+    Determine current folder structure version. (Read folder_structure/version.json)
 
-    :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
+    :param folder_structure_dir: Path to the root of the OpenGenomeBrowser folder structure. (Must contain 'organisms' folder.)
     :return: version (integer)
     """
-    assert type(database_dir) is str
-    version_file = f'{database_dir}/version.json'
+    assert type(folder_structure_dir) is str
+    version_file = f'{folder_structure_dir}/version.json'
 
     if not os.path.isfile(version_file):
         with open(version_file, 'w') as f:

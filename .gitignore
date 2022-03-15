@@ -1,6 +1,7 @@
 /.idea/
 /test-data
 /database
+/folder_structure
 __pycache__
 esummary_assembly.dtd
 /esummary_biosample.dtd

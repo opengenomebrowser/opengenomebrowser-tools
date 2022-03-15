@@ -2,12 +2,12 @@ import os
 from .folder_looper import FolderLooper
 
 
-def init_orthofinder(database_dir: str = None, skip_ignored: bool = True, sanity_check: bool = True, representatives_only: bool = False):
-    if database_dir is None:
-        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
-        database_dir = os.environ['GENOMIC_DATABASE']
+def init_orthofinder(folder_structure_dir: str = None, skip_ignored: bool = True, sanity_check: bool = True, representatives_only: bool = False):
+    if folder_structure_dir is None:
+        assert 'FOLDER_STRUCTURE' in os.environ, f'Cannot find the folder_structure. Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
+        folder_structure_dir = os.environ['FOLDER_STRUCTURE']
 
-    orthofinder_dir = os.path.join(database_dir, 'OrthoFinder')
+    orthofinder_dir = os.path.join(folder_structure_dir, 'OrthoFinder')
     fasta_dir = os.path.join(orthofinder_dir, 'fastas')
 
     if not os.path.isdir(orthofinder_dir):
@@ -17,7 +17,7 @@ def init_orthofinder(database_dir: str = None, skip_ignored: bool = True, sanity
 
     os.makedirs(fasta_dir)
 
-    folder_looper = FolderLooper(database_dir)
+    folder_looper = FolderLooper(folder_structure_dir)
 
     n_faas = 0
     print(f'Linking protein fastas to {fasta_dir}/{{identifier}}.faa')
@@ -29,7 +29,7 @@ def init_orthofinder(database_dir: str = None, skip_ignored: bool = True, sanity
         n_faas += 1
 
     cmd = f'orthofinder -f {fasta_dir}'
-    container_cmd = f'-it --rm -v {database_dir}:/input:Z davidemms/orthofinder orthofinder -f /input/OrthoFinder/fastas'
+    container_cmd = f'-it --rm -v {folder_structure_dir}:/input:Z davidemms/orthofinder orthofinder -f /input/OrthoFinder/fastas'
     podman_cmd = f'podman run --ulimit=host {container_cmd}'
     docker_cmd = f'docker run --ulimit nofile=1000000:1000000 {container_cmd}'
 

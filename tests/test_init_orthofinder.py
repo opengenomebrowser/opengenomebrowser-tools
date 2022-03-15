@@ -7,10 +7,10 @@ from opengenomebrowser_tools.init_orthofinder import init_orthofinder
 logging.basicConfig(level=logging.INFO)
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
-GENOMIC_DATABASE = f'{ROOT}/database'
-ORTHOFINDER_DIR = f'{GENOMIC_DATABASE}/OrthoFinder'
+FOLDER_STRUCTURE = f'{ROOT}/folder_structure'
+ORTHOFINDER_DIR = f'{FOLDER_STRUCTURE}/OrthoFinder'
 
-assert os.path.isdir(GENOMIC_DATABASE)
+assert os.path.isdir(FOLDER_STRUCTURE)
 
 
 def cleanup():
@@ -20,7 +20,7 @@ def cleanup():
 
 class Test(TestCase):
     def test_init_orthofinder(self):
-        init_orthofinder(database_dir=GENOMIC_DATABASE)
+        init_orthofinder(folder_structure_dir=FOLDER_STRUCTURE)
 
     def setUp(self) -> None:
         cleanup()

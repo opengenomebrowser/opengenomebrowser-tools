@@ -29,7 +29,7 @@ setup(
     install_requires=['schema', 'biopython', 'termcolor', 'fire', 'pyyaml'],
     entry_points={
         'console_scripts': [
-            'init_database=opengenomebrowser_tools.init_database:main',
+            'init_folder_structure=opengenomebrowser_tools.init_folder_structure:main',
             'import_genome=opengenomebrowser_tools.import_genome:main',
             'download_ncbi_genome=opengenomebrowser_tools.download_ncbi_genome:main',
             'genbank_to_fasta=opengenomebrowser_tools.genbank_to_fasta:main',

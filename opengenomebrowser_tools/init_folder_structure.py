@@ -78,12 +78,12 @@ def download_sl_data(out: str) -> None:
             target_handle.write(f'{sl}\t{location} ({description})\n')
 
 
-def init_database(database_dir: str = None) -> None:
+def init_folder_structure(folder_structure_dir: str = None) -> None:
     """
     Creates a basic OpenGenomeBrowser folders structure.
 
     Result:
-        database
+        folder_structure
         ├── organisms
         ├── annotations.json
         ├── annotation-descriptions
@@ -98,39 +98,41 @@ def init_database(database_dir: str = None) -> None:
             └── svg
 
 
-    :param database_dir: Path to the root of the OpenGenomeBrowser folder structure. (Will contain 'organisms' folder.)
+    :param folder_structure_dir: Path to the root of the OpenGenomeBrowser folder structure. (Will contain 'organisms' folder.)
     """
-    if database_dir is None:
-        assert 'GENOMIC_DATABASE' in os.environ, f'Cannot find the database. Please set --database_dir or environment variable GENOMIC_DATABASE'
-        database_dir = os.environ['GENOMIC_DATABASE']
+    if folder_structure_dir is None:
+        assert 'FOLDER_STRUCTURE' in os.environ, \
+            f'Cannot find the folder_structure. ' \
+            f'Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
+        folder_structure_dir = os.environ['FOLDER_STRUCTURE']
 
-    assert os.path.isdir(os.path.dirname(database_dir)), f'Parent dir of {database_dir=} does not exist!'
-    assert not os.path.exists(database_dir), f'Error: {database_dir=} already exist!'
+    assert os.path.isdir(os.path.dirname(folder_structure_dir)), f'Parent dir of {folder_structure_dir=} does not exist!'
+    assert not os.path.exists(folder_structure_dir), f'Error: {folder_structure_dir=} already exist!'
 
     # make main dir
-    os.makedirs(database_dir)
+    os.makedirs(folder_structure_dir)
 
     # set version
-    with open(f'{database_dir}/version.json', 'w') as f:
+    with open(f'{folder_structure_dir}/version.json', 'w') as f:
         json.dump({'folder_structure_version': __folder_structure_version__}, f, indent=4)
 
     # make organisms dir (empty)
-    os.makedirs(f'{database_dir}/organisms')
+    os.makedirs(f'{folder_structure_dir}/organisms')
 
     # make orthologs dir (empty)
-    os.makedirs(f'{database_dir}/orthologs')
+    os.makedirs(f'{folder_structure_dir}/orthologs')
 
     # make pathway maps dir and content
-    os.makedirs(f'{database_dir}/pathway-maps')
-    os.makedirs(f'{database_dir}/pathway-maps/svg')
-    with open(f'{database_dir}/pathway-maps/type_dictionary.json', 'w') as f:
+    os.makedirs(f'{folder_structure_dir}/pathway-maps')
+    os.makedirs(f'{folder_structure_dir}/pathway-maps/svg')
+    with open(f'{folder_structure_dir}/pathway-maps/type_dictionary.json', 'w') as f:
         f.write('{}')
 
     # Create annotations.json
-    shutil.copy(src=f'{PACKAGE_ROOT}/data/annotations.json', dst=f'{database_dir}/annotations.json')
+    shutil.copy(src=f'{PACKAGE_ROOT}/data/annotations.json', dst=f'{folder_structure_dir}/annotations.json')
 
     # download annotation descriptions
-    annotation_descriptions_dir = f'{database_dir}/annotation-descriptions'
+    annotation_descriptions_dir = f'{folder_structure_dir}/annotation-descriptions'
     os.makedirs(annotation_descriptions_dir)
     download_sl_data(out=f'{annotation_descriptions_dir}/SL.tsv')
     download_kegg_data(src='rn', out=f'{annotation_descriptions_dir}/KR.tsv', remove_prefix='rn:')
@@ -142,7 +144,7 @@ def init_database(database_dir: str = None) -> None:
 def main():
     import fire
 
-    fire.Fire(init_database)
+    fire.Fire(init_folder_structure)
 
 
 if __name__ == '__main__':

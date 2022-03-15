@@ -144,11 +144,11 @@ class FolderGenome(FolderEntity):
 
 
 class FolderLooper:
-    def __init__(self, database_dir: str):
-        self.database_dir = database_dir
-        self.organism_path = os.path.join(self.database_dir, 'organisms')
+    def __init__(self, folder_structure_dir: str):
+        self.folder_structure_dir = folder_structure_dir
+        self.organism_path = os.path.join(self.folder_structure_dir, 'organisms')
 
-        for dir in (self.database_dir, self.organism_path):
+        for dir in (self.folder_structure_dir, self.organism_path):
             assert os.path.isdir(dir), f'Folder does not exist: {dir=}'
 
     def organisms(self, skip_ignored: bool = True, sanity_check: bool = True) -> [FolderOrganism]:
@@ -171,11 +171,11 @@ class FolderLooper:
                     yield genome
 
 
-def loop(database_dir: str = None, what: str = 'genomes', skip_ignored: bool = True, sanity_check: bool = True, representatives_only: bool = False):
-    if database_dir is None:
-        database_dir = os.environ.get('GENOMIC_DATABASE')
+def loop(folder_structure_dir: str = None, what: str = 'genomes', skip_ignored: bool = True, sanity_check: bool = True, representatives_only: bool = False):
+    if folder_structure_dir is None:
+        folder_structure_dir = os.environ.get('FOLDER_STRUCTURE')
 
-    folder_looper = FolderLooper(database_dir)
+    folder_looper = FolderLooper(folder_structure_dir)
     if what == 'genomes':
         for organism in folder_looper.organisms(skip_ignored=skip_ignored, sanity_check=sanity_check):
             print(organism.path)
