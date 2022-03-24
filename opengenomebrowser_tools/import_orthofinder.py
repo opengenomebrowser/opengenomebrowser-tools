@@ -68,7 +68,8 @@ class OrthogroupToGeneName:
         # read "Orthogroups.tsv"
         gene_ids_df = pd.read_csv(og_tsv, sep='\t', dtype=str)
         gene_ids_df.set_index('Orthogroup', inplace=True)
-        gene_ids_df = gene_ids_df.applymap(lambda x: [] if pd.isnull(x) else [clean_locus_tag(locus_tag) for locus_tag in x.split(', ')])
+        gene_ids_df = gene_ids_df.applymap(
+            lambda x: [] if pd.isnull(x) else [clean_locus_tag(locus_tag) for locus_tag in x.split(', ')])
 
         self.gene_ids_df = gene_ids_df
         self.__load_gene_names(self.gene_ids_df.__deepcopy__())
@@ -80,7 +81,8 @@ class OrthogroupToGeneName:
         gene_ids_df = pd.read_csv(n0_tsv, sep='\t', dtype=str)
         gene_ids_df.set_index('HOG', inplace=True)
         gene_ids_df.drop(columns=['OG', 'Gene Tree Parent Clade'], inplace=True)
-        gene_ids_df = gene_ids_df.applymap(lambda x: [] if pd.isnull(x) else [clean_locus_tag(locus_tag) for locus_tag in x.split(', ')])
+        gene_ids_df = gene_ids_df.applymap(
+            lambda x: [] if pd.isnull(x) else [clean_locus_tag(locus_tag) for locus_tag in x.split(', ')])
 
         self.gene_ids_df = gene_ids_df
         self.__load_gene_names(self.gene_ids_df.__deepcopy__())
@@ -107,7 +109,8 @@ class OrthogroupToGeneName:
 
         names_to_count = Counter(all_names)
 
-        return names_to_count.most_common(1)[0][0], str(names_to_count)  # return best gene name and gene name occurrences as string
+        return names_to_count.most_common(1)[0][0], str(
+            names_to_count)  # return best gene name and gene name occurrences as string
 
     def __get_gene_id_to_name_dict(self, strain):
         fasta_file_path = os.path.join(self.fasta_dir + f'/{strain}.{self.file_endings}')
@@ -115,7 +118,12 @@ class OrthogroupToGeneName:
         genes = SeqIO.parse(fasta_file_path, "fasta")
 
         def extract_description(gene):
-            description = gene.description.split(' ', maxsplit=1)[1]
+            description = gene.description.split(' ', maxsplit=1)
+            assert len(description) == 2, \
+                F'Failed to extract description for strain={strain}:\n' \
+                F'gene.description={gene.description}\n' \
+                F'description={description}'
+            description = description[1]
             if description.endswith(']'):
                 # remove species description
                 return description.rsplit(' [', maxsplit=1)[0]
@@ -157,12 +165,14 @@ def import_orthofinder(
         out_annotations = f'{folder_structure_dir}/orthologs/orthologs.tsv'  # is CustomAnnotationsFile, maps HOG -> [gene]
 
     assert os.path.isdir(fasta_dir), f'Error: directory does not exist: {fasta_dir=}'
-    assert os.path.isdir(f'{fasta_dir}/OrthoFinder'), f'Error: {fasta_dir=} contains no OrthoFinder directory. You must run OrthoFinder first!'
+    assert os.path.isdir(
+        f'{fasta_dir}/OrthoFinder'), f'Error: {fasta_dir=} contains no OrthoFinder directory. You must run OrthoFinder first!'
     for file in (out_descriptions, out_annotations):
         assert not os.path.isfile(file), f'Output file already exists! {file=}'
 
     results_dir = os.listdir(f'{fasta_dir}/OrthoFinder')
-    assert len(results_dir) == 1, f'Error: {fasta_dir}/OrthoFinder must contain exactly one directory! dirs={results_dir}'
+    assert len(
+        results_dir) == 1, f'Error: {fasta_dir}/OrthoFinder must contain exactly one directory! dirs={results_dir}'
     results_dir = results_dir[0]
 
     og_tsv = f'{fasta_dir}/OrthoFinder/{results_dir}/Orthogroups/Orthogroups.tsv'
