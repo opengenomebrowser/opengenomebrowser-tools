@@ -74,6 +74,8 @@ def rename_ncbi_files(
     if old_locus_tag_prefix is None:
         old_locus_tag_prefix = GenBankFile(raw_gbk).detect_locus_tag_prefix()
 
+    logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
+
     # reindex assembly
     reindex_assembly(file=raw_fna, out=out_fna, prefix=scaffold_prefix, leading_zeroes=leading_zeroes)
 
