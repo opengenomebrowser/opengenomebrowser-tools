@@ -81,11 +81,13 @@ def rename_ncbi_files(
 
     # rename gff
     gff = GffFile(raw_gff)
-    gff.rename(new_locus_tag_prefix=new_locus_tag_prefix, old_locus_tag_prefix=old_locus_tag_prefix, out=out_gff, validate=validate)
+    gff.rename(new_locus_tag_prefix=new_locus_tag_prefix, old_locus_tag_prefix=old_locus_tag_prefix, out=out_gff,
+               validate=validate)
 
     # rename gbk
     gbk = GenBankFile(raw_gbk)
-    gbk.rename(new_locus_tag_prefix=new_locus_tag_prefix, old_locus_tag_prefix=old_locus_tag_prefix, out=out_gbk, validate=validate)
+    gbk.rename(new_locus_tag_prefix=new_locus_tag_prefix, old_locus_tag_prefix=old_locus_tag_prefix, out=out_gbk,
+               validate=validate)
 
     # produce ffn
     GenBankToFasta.convert(gbk=out_gbk, out=out_ffn, format='ffn', strict=validate)
@@ -112,6 +114,9 @@ def download_ncbi_genome(
     :param scaffold_leading_zeroes: format scaffold counter with leading zeroes, e.g.: 5 -> >PREFIX_00001
     :param validate: If True, validate the newly created files
     """
+
+    logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
+
     filename_prefix = new_locus_tag_prefix.rstrip('_')
     out_fna = os.path.join(out_dir, f'{filename_prefix}.fna')
     out_gbk = os.path.join(out_dir, f'{filename_prefix}.gbk')
