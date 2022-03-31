@@ -74,7 +74,8 @@ def rename_ncbi_files(
     if old_locus_tag_prefix is None:
         old_locus_tag_prefix = GenBankFile(raw_gbk).detect_locus_tag_prefix()
 
-    logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
+    if not new_locus_tag_prefix.endswith('_'):
+        logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
 
     # reindex assembly
     reindex_assembly(file=raw_fna, out=out_fna, prefix=scaffold_prefix, leading_zeroes=leading_zeroes)
@@ -115,7 +116,8 @@ def download_ncbi_genome(
     :param validate: If True, validate the newly created files
     """
 
-    logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
+    if not new_locus_tag_prefix.endswith('_'):
+        logging.warning(f'new_locus_tag_prefix does not begin with _ (underline): {new_locus_tag_prefix}')
 
     filename_prefix = new_locus_tag_prefix.rstrip('_')
     out_fna = os.path.join(out_dir, f'{filename_prefix}.fna')
