@@ -41,6 +41,18 @@ class Test(TestCase):
             self.assertNotIn(member='STRAIN.1_', container=content)
             self.assertGreater(a=count, b=1000)
 
+    def test_rename_reindex(self):
+        for gbk in gbks:
+            cleanup()
+            GenBankFile(gbk).rename(
+                new_locus_tag_prefix='YOLO_', out=TMPFILE, validate=True,
+                scf_prefix='XX_scf', scf_leading_zeroes=10
+            )
+            with open(TMPFILE) as f:
+                content = f.read()
+            count = content.count('XX_scf0')
+            self.assertGreater(a=count, b=0)
+
     def test_get_metadata(self):
         for gbk in gbks:
             organism_data, genome_data = GenBankFile(gbk).metadata()

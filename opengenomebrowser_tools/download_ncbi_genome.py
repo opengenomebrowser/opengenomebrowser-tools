@@ -88,7 +88,7 @@ def rename_ncbi_files(
     # rename gbk
     gbk = GenBankFile(raw_gbk)
     gbk.rename(new_locus_tag_prefix=new_locus_tag_prefix, old_locus_tag_prefix=old_locus_tag_prefix, out=out_gbk,
-               validate=validate)
+               validate=validate, scf_prefix=scaffold_prefix, scf_leading_zeroes=leading_zeroes)
 
     # produce ffn
     GenBankToFasta.convert(gbk=out_gbk, out=out_ffn, format='ffn', strict=validate)

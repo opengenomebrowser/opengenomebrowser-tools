@@ -1,15 +1,39 @@
 from Bio import SeqIO, SeqRecord, SeqFeature
-from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function, split_locus_tag
+from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function, \
+    split_locus_tag
 from .genbank_to_fasta import GenBankToFasta
 
 
 class GenBankFile(GenomeFile):
-    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False) -> None:
+    def rename(
+            self,
+            out: str,
+            new_locus_tag_prefix: str,
+            old_locus_tag_prefix: str = None,
+            validate: bool = False,
+            scf_prefix: str = None,
+            scf_leading_zeroes: int = None,
+    ) -> None:
         old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
 
         with open(self.path) as in_f:
-            content = in_f.read()
+            content = in_f.readlines()
 
+        if scf_prefix:
+            # change scf prefixes
+            if type(scf_leading_zeroes) is int and scf_leading_zeroes > 1:
+                format = lambda c: f'VERSION     {scf_prefix}{str(c).zfill(scf_leading_zeroes)}\n'
+            else:
+                format = lambda c: f'VERSION     {scf_prefix}{c}\n'
+
+            counter = 0
+            for i, line in enumerate(content):
+                if line.startswith('VERSION'):
+                    counter += 1
+                    content[i] = format(counter)
+
+        content = ''.join(content)
+        # change locus tags
         replace_fn = create_replace_function({
             string.format(prefix=old_locus_tag_prefix): string.format(prefix=new_locus_tag_prefix)
             for string in ['/locus_tag="{prefix}', '/protein_id="extdb:{prefix}', ':{prefix}']
@@ -146,7 +170,11 @@ class GenBankFile(GenomeFile):
         raise AssertionError(f'Failed to get rec and feature from {gbk=}')
 
 
-def rename_genbank(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False):
+def rename_genbank(
+        file: str, out: str,
+        new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False,
+        scf_prefix: str = None, scf_leading_zeroes: int = None,
+):
     """
     Change the locus tags in a GenBank file
 
@@ -154,7 +182,9 @@ def rename_genbank(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag
     :param out: output file
     :param new_locus_tag_prefix: desired locus tag
     :param old_locus_tag_prefix: locus tag to replace
-    :param validate: if true, perform sanity check
+    :param validate: if true, perform sanity check on locus tags
+    :param scf_prefix: desired scaffold prefix (optional)
+    :param scf_leading_zeroes: format scaffold counter with leading zeroes. e.g.: 5 -> >PREFIX_00001 (optional)
     """
 
     GenBankFile(
@@ -163,7 +193,9 @@ def rename_genbank(file: str, out: str, new_locus_tag_prefix: str, old_locus_tag
         out=out,
         new_locus_tag_prefix=new_locus_tag_prefix,
         old_locus_tag_prefix=old_locus_tag_prefix,
-        validate=validate
+        validate=validate,
+        scf_prefix=scf_prefix,
+        scf_leading_zeroes=scf_leading_zeroes
     )
 
 
