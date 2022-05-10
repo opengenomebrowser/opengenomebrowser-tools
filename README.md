@@ -7,7 +7,7 @@ A set of scripts that helps to import genome data into the OpenGenomeBrowser fol
 This package requires at least `Python 3.9`.
 
 ```bash
-pip install git+https://github.com/opengenomebrowser/opengenomebrowser-tools.git
+pip install opengenomebrowser-tools
 ```
 
 ## Help function

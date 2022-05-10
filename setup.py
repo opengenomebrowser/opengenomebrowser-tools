@@ -1,4 +1,8 @@
 # based on https://realpython.com/pypi-publish-python-package
+# How to upload:
+#  - change package version in `setup.py` and `__init__.py`
+#  - `python setup.py sdist`
+#  - `twine upload dist/opengenomebrowser-tools-?.tar.gz`
 import pathlib
 from setuptools import setup
 
