@@ -99,6 +99,13 @@ class Test(TestCase):
             organism='STRAIN', genome='STRAIN.1'
         )
 
+    def test_import_simone_config(self):
+        import_genome(
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/simone',
+            import_settings=f'{ROOT}/test-data/import-config-agroscope.json',
+            organism='FAM24234', genome='FAM24234-i1-2.1'
+        )
+
     def test_import_ncbi(self):
         import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/ncbi-convert',
                       organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)

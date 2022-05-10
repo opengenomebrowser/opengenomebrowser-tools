@@ -26,20 +26,33 @@ class ImportSettings:
     default_settings = {
         'organism_template': {},
         'genome_template': {},
+        'manual_paths': {
+            'eggnog': r'.*\.emapper\.annotations',
+            'fna': r'.*\.fna',
+            'faa': r'.*\.faa',
+            'gbk': r'.*\.gbk',
+            'gff': r'.*\.gff',
+            'sqn': r'.*\.sqn',
+            'ffn': r'.*\.ffn',
+            'genome.md': r'genome\.md',
+            'organism.md': r'organism\.md',
+            'yaml': r'.*\.yaml',
+            'busco': r'.*_busco\.txt',
+        },
         'path_transformer': {
-            '.*\.fna': '{genome}.{suffix}',
-            '.*\.faa': '{genome}.{suffix}',
-            '.*\.gbk': '{genome}.{suffix}',
-            '.*\.gff': '{genome}.{suffix}',
-            '.*\.sqn': '{genome}.{suffix}',
-            '.*\.ffn': '{genome}.{suffix}',
-            '.*\.emapper.annotations': '{genome}.eggnog',
-            '.*\.[A-Z]{2}': '{genome}.{suffix}',
-            'genome.md': 'genome.md',
-            'organism.md': '../../organism.md',
-            'genome.json': None,  # do not copy this file
-            'organism.json': None,  # do not copy this file
-            '.*': 'rest/{original_path}',
+            r'.*\.fna': '{genome}.{suffix}',
+            r'.*\.faa': '{genome}.{suffix}',
+            r'.*\.gbk': '{genome}.{suffix}',
+            r'.*\.gff': '{genome}.{suffix}',
+            r'.*\.sqn': '{genome}.{suffix}',
+            r'.*\.ffn': '{genome}.{suffix}',
+            r'.*\.emapper.annotations': '{genome}.eggnog',
+            r'.*\.[A-Z]{2}': '{genome}.{suffix}',
+            r'genome\.md': 'genome.md',
+            r'organism\.md': '../../organism.md',
+            r'genome\.json': None,  # do not copy this file
+            r'organism\.json': None,  # do not copy this file
+            r'.*': 'rest/{original_path}',
         }
     }
 
@@ -55,14 +68,20 @@ class ImportSettings:
         else:
             settings = {}
 
-        self.settings = self.default_settings | settings  # PEP-584: union dicts
+        self.settings = self.default_settings | settings  # PEP-584: dict union: overwrite defaults with new settings
+        self.settings['manual_paths'] = self.default_settings['manual_paths'] | settings.get('manual_paths', {})
 
-        assert set(self.settings.keys()) == {'organism_template', 'genome_template', 'path_transformer'}, \
-            f'OGB_IMPORT_SETTINGS must contain these JSON keys: organism_template, genome_template and path_transformer! {self.settings.keys()=}'
+        assert set(self.settings.keys()) == set(self.default_settings.keys()), \
+            f'OGB_IMPORT_SETTINGS must contain these JSON keys: {set(self.default_settings.keys())}! ' \
+            f'reality: {self.settings.keys()}'
 
         self.organism_template = self.settings['organism_template']
         self.genome_template = self.settings['genome_template']
-        self.path_transformer: {re.Pattern: str} = {re.compile(pattern=p): n for p, n in self.settings['path_transformer'].items()}
+        self.path_transformer: {re.Pattern: str} = {re.compile(pattern=p): n for p, n in
+                                                    self.settings['path_transformer'].items()}
+
+        self.file_finder: {str: re.Pattern} = {n: re.compile(pattern=p) for n, p in
+                                               self.settings['manual_paths'].items()}
 
     def get_path(self, original_path: str, genome: str, organism: str) -> Optional[str]:
         pattern: re.Pattern
@@ -75,15 +94,23 @@ class ImportSettings:
                     suffix=original_path.rsplit('.', 1)[-1],
                     genome=genome,
                     organism=organism,
+                    assembly=genome.rsplit('.', 1)[0]
                 )
-        raise AssertionError(f'File {original_path} does not match any regex specified in import_settings: {self.settings}')
+        raise AssertionError(
+            f'File/folder {original_path} does not match any regex specified in import_settings: {self.settings}')
+
+    def find_files(self, files, type: str) -> [str]:
+        pattern = self.file_finder[type]
+        matches = [f for f in files if pattern.fullmatch(string=f) is not None]
+        return matches
 
 
 class OgbImporter:
     genome_json: dict = None
     organism_json: dict = None
 
-    def __init__(self, folder_structure_dir: str, import_dir: str, organism: str = None, genome: str = None, import_settings: str = None):
+    def __init__(self, folder_structure_dir: str, import_dir: str, organism: str = None, genome: str = None,
+                 import_settings: str = None):
         """
         Easily import files into the OpenGenomeBrowser folder structure.
 
@@ -94,7 +121,8 @@ class OgbImporter:
         :param rename: Locus tag prefixes must match the genome identifier. If this is not the case, this script can automatically rename relevant files.
         :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
         """
-        assert folder_structure_dir is not None and os.path.isdir(folder_structure_dir), f'Cannot import PGAP files: {folder_structure_dir=} does not exist.'
+        assert folder_structure_dir is not None and os.path.isdir(
+            folder_structure_dir), f'Cannot import PGAP files: {folder_structure_dir=} does not exist.'
         assert os.path.isdir(import_dir), f'Cannot import PGAP files: {import_dir=} does not exist.'
 
         self.import_settings = ImportSettings(import_settings)
@@ -104,15 +132,16 @@ class OgbImporter:
         self.import_dir = import_dir
         self.folder_structure_dir = folder_structure_dir
         self.organisms_dir = f'{folder_structure_dir}/organisms'
-        assert os.path.isdir(self.organisms_dir), f'{folder_structure_dir=} does not point to a directory that contains an organisms-folder!'
+        assert os.path.isdir(
+            self.organisms_dir), f'{folder_structure_dir=} does not point to a directory that contains an organisms-folder!'
 
         files = os.listdir(import_dir)
-        self.fna = self.find_file(files, '.fna', FastaFile)  # assembly
-        self.gbk = self.find_file(files, '.gbk', GenBankFile)  # genbank
+        self.fna = self.find_file(files, 'fna', FastaFile)  # assembly
+        self.gbk = self.find_file(files, 'gbk', GenBankFile)  # genbank
         self.ffn = self.find_or_create_ffn(files=files)  # nucleic acid sequences
         self.faa = self.find_or_create_faa(files=files)  # protein
-        self.gff = self.find_file(files, '.gff', GffFile)  # general feature format
-        self.sqn = self.find_file(files, '.sqn', GenomeFile, raise_error=False)  # GenBank submission file
+        self.gff = self.find_file(files, 'gff', GffFile)  # general feature format
+        self.sqn = self.find_file(files, 'sqn', GenomeFile, raise_error=False)  # GenBank submission file
         self.custom_annotations = self.find_custom_annotations(files)  # custom annotation files / eggnog files
 
         self.genome_md = self.get_genome_file(files, 'genome.md', GenomeFile, raise_error=False)
@@ -123,11 +152,13 @@ class OgbImporter:
         auto_organism, auto_genome = self.detect_organism_genome()
         self.organism = organism if organism else auto_organism
         self.genome = genome if genome else auto_genome
-        assert self.genome.startswith(self.organism), f'The genome identifier must start with the organism name! {self.genome=} {self.organism=}'
+        assert self.genome.startswith(
+            self.organism), f'The genome identifier must start with the organism name! {self.genome=} {self.organism=}'
 
         self.target_dir = f'{self.organisms_dir}/{self.organism}/genomes/{self.genome}'
 
-        assert not os.path.isdir(self.target_dir), f'Could not import {self.organism}:{self.genome}: {self.target_dir=} already exists!'
+        assert not os.path.isdir(
+            self.target_dir), f'Could not import {self.organism}:{self.genome}: {self.target_dir=} already exists!'
 
     def __repr__(self):
         return f'{self.organism}::{self.genome}'
@@ -159,7 +190,7 @@ class OgbImporter:
     def load_yaml_metadata(self) -> (dict, dict):
         organism_yaml, genome_yaml = {}, {}
         try:
-            submol_yaml = self.find_file(files=self.rest_files, suffix='.yaml', file_class=GenomeFile, remove=False)
+            submol_yaml = self.find_file(files=self.rest_files, key='yaml', file_class=GenomeFile, remove=False)
         except FileNotFoundError:
             return organism_yaml, genome_yaml
         with open(submol_yaml.path) as f:
@@ -184,7 +215,8 @@ class OgbImporter:
 
     def load_busco_metadata(self) -> dict:
         try:
-            busco_file = self.find_file(files=self.rest_files, suffix='_busco.txt', file_class=GenomeFile, remove=False)
+            busco_file = self.find_file(files=self.rest_files, key='busco', file_class=GenomeFile,
+                                        remove=False)
         except FileNotFoundError:
             return {}
 
@@ -239,8 +271,10 @@ class OgbImporter:
         organism_json = merge_json(organism_json, os.path.join(self.target_dir, '../../organism.json'))
 
         # add organism.json / genome.json from import_dir
-        organism_json = merge_json(organism_json, self.get_file(files=self.rest_files, file='organism.json', raise_error=False))
-        genome_json = merge_json(genome_json, self.get_file(files=self.rest_files, file='genome.json', raise_error=False))
+        organism_json = merge_json(organism_json,
+                                   self.get_file(files=self.rest_files, file='organism.json', raise_error=False))
+        genome_json = merge_json(genome_json,
+                                 self.get_file(files=self.rest_files, file='genome.json', raise_error=False))
 
         # add elementary identifiers
         organism_json['name'] = self.organism
@@ -274,21 +308,21 @@ class OgbImporter:
 
     def find_or_create_ffn(self, files: [str]) -> GenomeFile:
         try:
-            return self.find_file(files, '.ffn', FastaFile)
+            return self.find_file(files, 'ffn', FastaFile)
         except FileNotFoundError:
-            self.ffn = self.gbk.path[:-3] + 'ffn'
+            self.ffn = self.gbk.path[:-4] + '.ffn'
             logging.info('Creating .ffn based on .gbk...')
             self.gbk.create_ffn(ffn=self.ffn)
-            return self.find_file(os.listdir(self.import_dir), '.ffn', FastaFile)
+            return self.find_file(os.listdir(self.import_dir), 'ffn', FastaFile)
 
     def find_or_create_faa(self, files: [str]) -> GenomeFile:
         try:
-            return self.find_file(files, '.faa', FastaFile)
+            return self.find_file(files, 'faa', FastaFile)
         except FileNotFoundError:
-            self.faa = self.gbk.path[:-3] + 'faa'
+            self.faa = self.gbk.path[:-4] + '.faa'
             logging.info('Creating .faa based on .gbk...')
             self.gbk.create_faa(faa=self.faa)
-            return self.find_file(os.listdir(self.import_dir), '.faa', FastaFile)
+            return self.find_file(os.listdir(self.import_dir), 'faa', FastaFile)
 
     def check_files(self) -> None:
         locus_tag_prefix = f'{self.genome}_'
@@ -323,6 +357,8 @@ class OgbImporter:
             f'(Run gather_metadata or set OgbImporter.genome_json and OgbImporter.organism_json manually)'
 
         def copy(src: str, dst: str):
+            if os.path.exists(dst):
+                logging.warning(f'Overwriting: {src} -> {dst}')
             copy_fn = shutil.copy2 if os.path.isfile(src) else shutil.copytree
             os.makedirs(os.path.dirname(dst), exist_ok=True)  # create parent dir if nonexistent
             copy_fn(src=src, dst=dst)
@@ -337,7 +373,7 @@ class OgbImporter:
         for original_path in self.rest_files:
             path = os.path.join(self.import_dir, original_path)
             new_path = self.get_new_path(original_path=original_path)
-            if new_path is None:
+            if new_path is None or new_path == '':
                 logging.info(f'not copying: {original_path}')
                 continue
             target_path = os.path.join(self.target_dir, new_path)
@@ -351,7 +387,8 @@ class OgbImporter:
         with open(os.path.join(self.target_dir, '../../organism.json'), 'w') as f:
             json.dump(self.organism_json, f, indent=4)
 
-    def get_file(self, files: [str], file: str, raise_error: bool = True, alternative=None, rel_path=False) -> str:
+    def get_file(self, files: [str], file: str,
+                 raise_error: bool = True, alternative=None, rel_path=False, remove: bool = False) -> str:
         if file in files:
             return file if rel_path else os.path.join(self.import_dir, file)
         elif raise_error:
@@ -359,28 +396,31 @@ class OgbImporter:
         else:
             return alternative
 
-    def get_genome_file(self, files: [str], file: str, file_class: type, raise_error: bool = True, alternative=None) -> GenomeFile:
+    def get_genome_file(self, files: [str], file: str, file_class: type,
+                        raise_error: bool = True, alternative=None, remove: bool = False) -> GenomeFile:
         try:
-            file = self.get_file(files=files, file=file, raise_error=True, rel_path=True)
+            file = self.get_file(files=files, file=file, raise_error=True, rel_path=True, remove=remove)
         except FileNotFoundError as e:
             if raise_error:
                 raise e
             else:
                 return alternative
         genome_file = file_class(os.path.join(self.import_dir, file), original_path=file)
+        if remove:
+            files.remove(file)
         return genome_file
 
-    def find_file(self, files: [str], suffix: str, file_class: type,
+    def find_file(self, files: [str], key: str, file_class: type,
                   raise_error: bool = True, alternative=None, remove: bool = True
                   ) -> Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]:
-        matches = [f for f in files if f.endswith(suffix)]
+        matches = self.import_settings.find_files(files, type=key)
         if len(matches) == 0:
             if raise_error:
-                raise FileNotFoundError(f'Could not find a {suffix} file! {files=}')
+                raise FileNotFoundError(f'Could not find a {key} file! {files=}')
             else:
                 return alternative
         if len(matches) > 1:
-            raise FileExistsError(f'Found multiple {suffix} files! {matches=}')
+            raise FileExistsError(f'Found multiple {key} files! {matches=}')
         file = matches[0]
         if remove:
             files.remove(file)
@@ -388,11 +428,13 @@ class OgbImporter:
         genome_file = file_class(os.path.join(self.import_dir, file), original_path=file)
         return genome_file
 
-    def find_custom_annotations(self, files: [str]) -> [Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]]:
-        custom_annotations = [self.get_genome_file(files, f, CustomAnnotationFile)
+    def find_custom_annotations(self, files: [str]) -> [
+        Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]]:
+        custom_annotations = [self.get_genome_file(files, f, CustomAnnotationFile, remove=True)
                               for f in files
                               if re.fullmatch(pattern=r'.*\.[A-Z]{2}', string=f) is not None]
-        eggnog = self.find_file(files, '.emapper.annotations', EggnogFile, raise_error=False)  # GenBank submission file
+        eggnog = self.find_file(files, 'eggnog', EggnogFile,
+                                raise_error=False)  # GenBank submission file
         if eggnog:
             eggnog: EggnogFile
             logging.info(f'Found eggnog file: {eggnog}')
@@ -403,7 +445,7 @@ class OgbImporter:
         if hasattr(self, 'tempdir'):
             logging.info(f'Deleting {self.tempdir.name}')
             try:
-                shutil.rmtree(self.tempdir.name)
+                self.tempdir.cleanup()
             except Exception as e:
                 logging.info(f'Could not delete {self.tempdir.name} {str(e)=}')
 
@@ -438,7 +480,8 @@ def import_genome(
         f'Current version: {current_folder_structure_version}, expected: {__folder_structure_version__}\n' \
         f'Use the script update_folder_structure perform the upgrade!'
 
-    ogb_importer = OgbImporter(folder_structure_dir=folder_structure_dir, import_dir=import_dir, organism=organism, genome=genome, import_settings=import_settings)
+    ogb_importer = OgbImporter(folder_structure_dir=folder_structure_dir, import_dir=import_dir, organism=organism,
+                               genome=genome, import_settings=import_settings)
 
     if rename:
         ogb_importer.rename_all(new_locus_tag_prefix=f'{ogb_importer.genome}_')

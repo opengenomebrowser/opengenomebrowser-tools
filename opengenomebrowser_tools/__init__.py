@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 __folder_structure_version__ = 2
 
 from .genbank_to_fasta import GenBankToFasta
