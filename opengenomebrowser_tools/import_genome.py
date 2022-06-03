@@ -5,6 +5,7 @@ import json
 import yaml
 import shutil
 import tempfile
+from glob import glob
 from textwrap import shorten
 from typing import Union, Optional
 from schema import SchemaError
@@ -99,9 +100,14 @@ class ImportSettings:
         raise AssertionError(
             f'File/folder {original_path} does not match any regex specified in import_settings: {self.settings}')
 
-    def find_files(self, files, type: str) -> [str]:
+    def find_files(self, files, type: str, root_dir: str) -> [str]:
         pattern = self.file_finder[type]
         matches = [f for f in files if pattern.fullmatch(string=f) is not None]
+        if not matches:
+            _old_wd = os.getcwd()
+            os.chdir(root_dir)
+            matches = glob(pattern.pattern)
+            os.chdir(_old_wd)
         return matches
 
 
@@ -215,8 +221,7 @@ class OgbImporter:
 
     def load_busco_metadata(self) -> dict:
         try:
-            busco_file = self.find_file(files=self.rest_files, key='busco', file_class=GenomeFile,
-                                        remove=False)
+            busco_file = self.find_file(files=self.rest_files, key='busco', file_class=GenomeFile, remove=False)
         except FileNotFoundError:
             return {}
 
@@ -288,13 +293,13 @@ class OgbImporter:
         try:
             organism_json_schema.validate(organism_json)
         except SchemaError as e:
-            logging.warning(f'{self}: FAILED TO CREATE A VALID organism.json!')
+            logging.warning(f'{self}: FAILED TO CREATE A VALID organism.json! {str(e)}')
             raise e
 
         try:
             genome_json_schema.validate(genome_json)
         except SchemaError as e:
-            logging.warning(f'{self}: FAILED TO CREATE A VALID genome.json!')
+            logging.warning(f'{self}: FAILED TO CREATE A VALID genome.json! {str(e)}')
             raise e
 
         self.organism_json = organism_json
@@ -413,7 +418,7 @@ class OgbImporter:
     def find_file(self, files: [str], key: str, file_class: type,
                   raise_error: bool = True, alternative=None, remove: bool = True
                   ) -> Union[GenomeFile, FastaFile, GffFile, GenBankFile, EggnogFile, CustomAnnotationFile]:
-        matches = self.import_settings.find_files(files, type=key)
+        matches = self.import_settings.find_files(files, type=key, root_dir=self.import_dir)
         if len(matches) == 0:
             if raise_error:
                 raise FileNotFoundError(f'Could not find a {key} file! {files=}')
@@ -422,7 +427,7 @@ class OgbImporter:
         if len(matches) > 1:
             raise FileExistsError(f'Found multiple {key} files! {matches=}')
         file = matches[0]
-        if remove:
+        if remove and file in files:
             files.remove(file)
 
         genome_file = file_class(os.path.join(self.import_dir, file), original_path=file)
@@ -433,8 +438,7 @@ class OgbImporter:
         custom_annotations = [self.get_genome_file(files, f, CustomAnnotationFile, remove=True)
                               for f in files
                               if re.fullmatch(pattern=r'.*\.[A-Z]{2}', string=f) is not None]
-        eggnog = self.find_file(files, 'eggnog', EggnogFile,
-                                raise_error=False)  # GenBank submission file
+        eggnog = self.find_file(files, 'eggnog', EggnogFile, raise_error=False)  # GenBank submission file
         if eggnog:
             eggnog: EggnogFile
             logging.info(f'Found eggnog file: {eggnog}')

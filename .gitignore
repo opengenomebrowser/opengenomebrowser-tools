@@ -7,4 +7,5 @@ esummary_assembly.dtd
 /esummary_biosample.dtd
 /temp/
 /build/
+/dist/
 /opengenomebrowser_tools.egg-info/
