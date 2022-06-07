@@ -31,7 +31,7 @@ class ImportSettings2:
         'organism_template': {},
         'genome_template': {},
         'import_actions': [
-            {'type': 'move', 'from': '*', 'to': '{original_path}', 'expected': True},
+            {'type': 'copy', 'from': '*', 'to': '{original_path}', 'expected': True},
         ],
         'file_finder': {
             'fna': {'glob': '*.fna', 'expected': 1},
@@ -69,7 +69,7 @@ class ImportSettings2:
             f'reality: {self.settings.keys()}'
 
     @staticmethod
-    def copy(src: str, dst: str):
+    def _copy(src: str, dst: str):
         if os.path.exists(dst):
             logging.warning(f'Overwriting: {src} -> {dst}')
         copy_fn = shutil.copy2 if os.path.isfile(src) else shutil.copytree
@@ -77,7 +77,7 @@ class ImportSettings2:
         copy_fn(src=src, dst=dst)
 
     @classmethod
-    def move(cls, source_dir: str, target_dir: str, genome: str, organism: str, action: dict):
+    def copy(cls, source_dir: str, target_dir: str, genome: str, organism: str, action: dict):
         from_ = action['from']
         to = action['to']
         expected = action.get('expected', True)
@@ -103,15 +103,15 @@ class ImportSettings2:
                     os.remove(dst)
                 else:
                     logging.info(f'{src} >>{action}>> {rel_dst}')
-                cls.copy(src=src, dst=dst)
+                cls._copy(src=src, dst=dst)
 
     def execute_actions(self, source_dir: str, target_dir: str, genome: str, organism: str) -> None:
         for action in self.settings['import_actions']:
             action_type = action['type']
-            if action_type == 'move':
-                self.move(source_dir, target_dir, genome, organism, action)
+            if action_type == 'copy':
+                self.copy(source_dir, target_dir, genome, organism, action)
             else:
-                raise AssertionError(f'Could not execute action: type must be "move". {action=}')
+                raise AssertionError(f'Could not execute action: type must be "copy". {action=}')
 
     @staticmethod
     def check_expected(files: [str], expected: Union[None, bool, int], glob_pattern:str):
