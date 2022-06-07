@@ -85,6 +85,12 @@ class Test(TestCase):
             import_settings=f'{ROOT}/test-data/import-config-subdir2.json',
             organism='FAM24234', genome='FAM24234-i1-2.1'
         )
+    def test_DSM22211(self):
+        import_genome(
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/DSM22211-i1-1.1',
+            import_settings=f'{ROOT}/test-data/import-config-DSM22211-2.json',
+            organism='DSM22211', genome='DSM22211-i1-1.1'
+        )
 
     def test_import_ncbi(self):
         import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/ncbi-convert',

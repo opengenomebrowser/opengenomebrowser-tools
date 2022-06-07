@@ -254,7 +254,18 @@ def decompress_gz(gz: str, out: str):
 def merge_json(dict_: dict, new: str = None) -> dict:
     if new is not None and os.path.isfile(new):
         with open(new) as f:
-            dict_.update(json.load(f))
+            new_dict = json.load(f)
+
+            for key, value in new_dict.items():
+                if value is None:
+                    # do not overwrite with None
+                    continue
+                if type(value) in [list, dict] and len(value)==0:
+                    # do not overwrite with empty
+                    continue
+
+                dict_[key]=value
+
     return dict_
 
 
