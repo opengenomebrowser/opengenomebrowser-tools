@@ -31,7 +31,7 @@ class ImportSettings2:
         'organism_template': {},
         'genome_template': {},
         'import_actions': [
-            {'type': 'move', 'from': '*', 'to': '{original_path}', 'required': True},
+            {'type': 'move', 'from': '*', 'to': '{original_path}', 'expected': True},
         ],
         'file_finder': {
             'fna': {'glob': '*.fna', 'expected': 1},
@@ -39,7 +39,7 @@ class ImportSettings2:
             'gff': {'glob': '*.gff', 'expected': 1},
             'faa': {'glob': '*.faa', 'expected': False},
             'sqn': {'glob': '*.sqn', 'expected': False},
-            'ffn': {'glob': '*.ffn', 'required': False},
+            'ffn': {'glob': '*.ffn', 'expected': False},
             'eggnog': {'glob': '*.emapper.annotations', 'expected': False},
             'yaml': {'glob': '*.yaml', 'expected': False},
             'busco': {'glob': '*_busco.txt', 'expected': False},
@@ -80,12 +80,11 @@ class ImportSettings2:
     def move(cls, source_dir: str, target_dir: str, genome: str, organism: str, action: dict):
         from_ = action['from']
         to = action['to']
-        required = action.get('required', True)
+        expected = action.get('expected', True)
 
         with WorkingDirectory(source_dir):
             files = glob(from_)
-            if required:
-                assert len(files) > 0, f'Could not find anything with glob={from_}'
+            cls.check_expected(files, expected, from_)
             for src in files:
                 basename = os.path.basename(src)
                 rel_dst = to.format(
@@ -114,16 +113,8 @@ class ImportSettings2:
             else:
                 raise AssertionError(f'Could not execute action: type must be "move". {action=}')
 
-    def find_files(self, type_: str, root_dir: str) -> [str]:
-        settings = self.settings['file_finder'][type_]
-        glob_pattern = settings['glob']
-        expected = settings.get('expected', False)
-
-        with WorkingDirectory(root_dir):
-            files = glob(glob_pattern)
-
-        logging.info(f'Found {len(files)} files of type={type_} using glob={glob_pattern}')
-
+    @staticmethod
+    def check_expected(files: [str], expected: Union[None, bool, int], glob_pattern:str):
         if type(expected) is int:
             if len(files) != expected:
                 raise ImportException(f'Error: {files=} glob={glob_pattern}\n'
@@ -135,6 +126,17 @@ class ImportSettings2:
             if expected is not False:
                 raise ImportException(f'Error: config is bad. type must be integer or boolean. '
                                       f'{expected=} {type(expected)=}')
+
+    def find_files(self, type_: str, root_dir: str) -> [str]:
+        settings = self.settings['file_finder'][type_]
+        glob_pattern = settings['glob']
+        expected = settings.get('expected', False)
+
+        with WorkingDirectory(root_dir):
+            files = glob(glob_pattern)
+
+        logging.info(f'Found {len(files)} files of type={type_} using glob={glob_pattern}')
+        self.check_expected(files, expected, glob_pattern)
         return files
 
     def find_file(self, type_: str, root_dir: str, as_class=None, expected: bool = True) \
@@ -432,7 +434,7 @@ def import_genome2(
 
     if rename:
         rename_all(
-            root_dir=work_dir.name,            gbk=gbk,
+            root_dir=work_dir.name, gbk=gbk,
             files=[gbk, gff, faa, ffn, *custom_annotations],
             new_prefix=f'{genome}_'
         )
