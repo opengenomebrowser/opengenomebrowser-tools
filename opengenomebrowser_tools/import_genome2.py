@@ -368,11 +368,15 @@ def import_genome2(
     :param check_files: If true, check if locus tag prefixes match genome identifier.
     :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
     """
+    import_dir = os.path.abspath(import_dir)
+
     if folder_structure_dir is None:
         assert 'FOLDER_STRUCTURE' in os.environ, \
             f'Cannot find the folder_structure. ' \
             f'Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
         folder_structure_dir = os.environ['FOLDER_STRUCTURE']
+
+    folder_structure_dir = os.path.abspath(folder_structure_dir)
 
     organisms_dir = f'{folder_structure_dir}/organisms'
     assert os.path.isdir(organisms_dir), f'Cannot import files: {organisms_dir=} does not exist.'
