@@ -35,6 +35,7 @@ setup(
         'console_scripts': [
             'init_folder_structure=opengenomebrowser_tools.init_folder_structure:main',
             'import_genome=opengenomebrowser_tools.import_genome:main',
+            'import_genome2=opengenomebrowser_tools.import_genome2:main',
             'download_ncbi_genome=opengenomebrowser_tools.download_ncbi_genome:main',
             'genbank_to_fasta=opengenomebrowser_tools.genbank_to_fasta:main',
             'reindex_assembly=opengenomebrowser_tools.reindex_assembly:main',

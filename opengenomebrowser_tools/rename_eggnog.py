@@ -13,7 +13,14 @@ EGGNOG_VERSIONS = {
 
 
 class EggnogFile(GenomeFile):
-    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = False) -> None:
+    def rename(
+            self,
+            out: str,
+            new_locus_tag_prefix: str,
+            old_locus_tag_prefix: str = None,
+            validate: bool = False,
+               update_path: bool = True
+    ) -> None:
         old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
 
         with open(self.path) as in_f:
@@ -34,7 +41,8 @@ class EggnogFile(GenomeFile):
         with open(out, 'w') as out_f:
             out_f.writelines(content)
 
-        self.path = out
+        if update_path:
+            self.path = out
 
         if validate:
             self.validate_locus_tags(locus_tag_prefix=new_locus_tag_prefix)

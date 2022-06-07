@@ -13,6 +13,7 @@ class GenBankFile(GenomeFile):
             validate: bool = False,
             scf_prefix: str = None,
             scf_leading_zeroes: int = None,
+            update_path: bool = True
     ) -> None:
         old_locus_tag_prefix = self._pre_rename_check(out, new_locus_tag_prefix, old_locus_tag_prefix)
 
@@ -48,7 +49,8 @@ class GenBankFile(GenomeFile):
         with open(out, 'w') as out_f:
             out_f.write(content)
 
-        self.path = out
+        if update_path:
+            self.path = out
 
         if validate:
             self.validate_locus_tags(locus_tag_prefix=new_locus_tag_prefix)

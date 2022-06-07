@@ -22,6 +22,30 @@ for f in [ANNOTATIONS_JSON, COG_CATEGORIES_JSON]:
     assert os.path.isfile(f), f'Package is poorly configured: file is missing: {f}'
 
 
+class WorkingDirectory:
+    """
+    Context manager to temporarily change the working directory.
+
+    Example:
+
+    with WorkingDirectory('some/path'):
+        some_function()
+    """
+    new: str
+    old: str
+
+    def __init__(self, new_working_directory: str):
+        assert os.path.isdir(new_working_directory), f'Failed to enter {new_working_directory=}: does not exist!'
+        self.new = new_working_directory
+
+    def __enter__(self):
+        self.old = os.getcwd()
+        os.chdir(self.new)
+
+    def __exit__(self, *args, **kwargs):
+        os.chdir(self.old)
+
+
 class GenomeFile:
     original_path: str
     target_path: str
@@ -43,7 +67,8 @@ class GenomeFile:
     def validate_locus_tags(self, locus_tag_prefix: str = None):
         raise NotImplementedError('This function must be overwritten.')
 
-    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None, validate: bool = True) -> None:
+    def rename(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None,
+               validate: bool = True, update_path: bool = True) -> None:
         raise NotImplementedError('This function must be overwritten.')
 
     def _pre_rename_check(self, out: str, new_locus_tag_prefix: str, old_locus_tag_prefix: str = None) -> str:
