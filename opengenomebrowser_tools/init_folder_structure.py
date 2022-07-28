@@ -42,7 +42,8 @@ def download_go_data(out: str) -> None:
 
         # skip first entry
         file_head = next(gos)
-        assert not file_head[0].startswith('[Term]'), F'The go.obo file seems to have a wrong format! file_head looks wrong: {file_head}'
+        assert not file_head[0].startswith(
+            '[Term]'), F'The go.obo file seems to have a wrong format! file_head looks wrong: {file_head}'
 
         # save regular entries to file
         for entry in gos:
@@ -60,23 +61,31 @@ def download_kegg_data(src: str, out: str, remove_prefix: str = '', add_prefix: 
 
 
 def download_sl_data(out: str) -> None:
-    source_url = 'https://www.uniprot.org/locations/?query=*&format=tab&force=true&columns=id'
+    # https://www.uniprot.org/locations -> Share -> Generate URL for API
+    source_url = 'https://rest.uniprot.org/locations/stream?compressed=false' \
+                 '&fields=id,name,definition&format=tsv&query=*'
 
     print(f'Converting {source_url} -> {out}')
 
     error_msg = 'UniProt must have changed its format. Please contact the developer. error={error}'
 
-    with request.urlopen(source_url) as source_handle, open(out, 'w') as target_handle:
+    try:
+        source_handle = request.urlopen(source_url)
+    except Exception:
+        raise AssertionError(f'Failed to download {source_url}.\n{error_msg}')
+
+    with open(out, 'w') as target_handle:
         first_line = source_handle.readline().decode('utf-8')
-        assert first_line == 'Subcellular location ID\tDescription\tCategory\tAlias\n', error_msg.format(error=first_line)
+        assert first_line == 'Subcellular location ID\tName\tDescription\n', error_msg.format(error=first_line)
 
         for line in source_handle:
             line = line.decode('utf-8').strip().split('\t')
-            assert len(line) == 4, error_msg.format(error=f'{len(line)=}; {line=}')
-            sl, description, type, location = line
+            assert len(line) == 3, error_msg.format(error=f'{len(line)=}; {line=}')
+            sl, name, description = line
 
-            target_handle.write(f'{sl}\t{location} ({description})\n')
+            target_handle.write(f'{sl}\t{name} ({description})\n')
 
+    source_handle.close()
 
 def init_folder_structure(folder_structure_dir: str = None) -> None:
     """
@@ -106,7 +115,8 @@ def init_folder_structure(folder_structure_dir: str = None) -> None:
             f'Please set --folder_structure_dir or environment variable FOLDER_STRUCTURE'
         folder_structure_dir = os.environ['FOLDER_STRUCTURE']
 
-    assert os.path.isdir(os.path.dirname(folder_structure_dir)), f'Parent dir of {folder_structure_dir=} does not exist!'
+    assert os.path.isdir(
+        os.path.dirname(folder_structure_dir)), f'Parent dir of {folder_structure_dir=} does not exist!'
     assert not os.path.exists(folder_structure_dir), f'Error: {folder_structure_dir=} already exist!'
 
     # make main dir
