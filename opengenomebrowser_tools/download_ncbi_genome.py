@@ -29,10 +29,19 @@ def download_ncbi_file(record_id: str, out: str, file: str):
 
     # fetch summary
     summary = Entrez.read(Entrez.esummary(db='assembly', id=record_id, report='full'))
+    document_summary = summary['DocumentSummarySet']['DocumentSummary'][0]
 
     # extract ftp link
-    url = summary['DocumentSummarySet']['DocumentSummary'][0]['FtpPath_RefSeq']
+    refseq_url = document_summary['FtpPath_RefSeq']
+    genbank_url = document_summary['FtpPath_GenBank']
+
+    assert not (refseq_url == genbank_url == ''), f'Failed to extract FTP path to {file=}; {record_id}'
+
+    # choose refseq if possible
+    url = refseq_url if refseq_url != '' else genbank_url
+
     assert url.startswith('ftp://ftp.ncbi.nlm.nih.gov/genomes'), f'Url does not match: {url=}'
+
     assembly_label = os.path.basename(url)
     ftp_link = os.path.join(url, assembly_label + file)
     logging.info(f'Extracted {ftp_link=} from {record_id=}')

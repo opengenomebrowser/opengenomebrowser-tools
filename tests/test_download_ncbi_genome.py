@@ -98,3 +98,34 @@ class Test(TestCase):
         # has no record IDs
         with self.assertRaises(AssertionError):
             download_ncbi_genome(assembly_name='AF036485.1', new_locus_tag_prefix='AF036485.2_', out_dir=DOWNLOAD_DIR)
+
+    def test_download_O_1(self):
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='O_1_'))
+        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCA_900183865.1', out_dir=DOWNLOAD_DIR)
+        for file in (fna, gbk, gff):
+            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+
+    def test_rename_O_1(self):
+        raw_fna, raw_gbk, raw_gff, _, _ = get_paths(dir=DOWNLOAD_DIR, prefix='GCA_900183865.1')
+        out_fna, out_gbk, out_gff, out_ffn, out_faa = get_paths(dir=CONVERT_DIR, prefix='GCA_900183865.1')
+        cleanup([out_fna, out_gbk, out_gff, out_ffn, out_faa])
+        rename_ncbi_files(
+            raw_fna, raw_gbk, raw_gff,
+            out_fna, out_gbk, out_gff, out_ffn, out_faa,
+            new_locus_tag_prefix='O_1_',
+            old_locus_tag_prefix='CFS20_RS',
+            scaffold_prefix='O_1_scf',
+            validate=True
+        )
+
+    def test_download_1708(self):
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='1708_'))
+        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCA_020743785.1', out_dir=DOWNLOAD_DIR)
+        for file in (fna, gbk, gff):
+            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+
+    def test_download_1708(self):
+        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='1708_'))
+        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCA_020743785.1', out_dir=DOWNLOAD_DIR)
+        for file in (fna, gbk, gff):
+            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
