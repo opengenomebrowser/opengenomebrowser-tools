@@ -1,3 +1,5 @@
+import logging
+
 from Bio import SeqIO, SeqRecord, SeqFeature
 from .utils import GenomeFile, query_int, entrez_organism_to_taxid, date_to_string, datetime, create_replace_function, \
     split_locus_tag
@@ -156,10 +158,15 @@ class GenBankFile(GenomeFile):
                         break
 
         assert type(locus_tag) is list, f'Could not read genome from .gbk file! {locus_tag=}'
-        assert type(strain) is list, f'Could not read organism from .gbk file! {strain=}'
+
+        if type(strain) is list and len(strain) == 1 and type(strain[0]) is str:
+            strain = strain[0]
+        else:
+            logging.warning(f'Could not read organism from .gbk file! {strain=}')
+            strain = input(f'Could not read organism from .gbk file! Please enter it manually and press enter:')
+            logging.warning(f'This organism name was manually chosen: {strain}')
 
         locus_tag_prefix, gene_id = split_locus_tag(locus_tag[0])
-        strain = strain[0]
         assert type(locus_tag_prefix) is str and type(strain) is str
         return strain, locus_tag_prefix
 
