@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import os
 import logging
-from opengenomebrowser_tools.download_ncbi_genome import get_record_id, download_ncbi_fna_gbk_gff, rename_ncbi_files, download_ncbi_genome
+from opengenomebrowser_tools.download_ncbi_genome import get_record_id, download_ncbi_fna_gbk_gff, rename_ncbi_files, \
+    download_ncbi_genome
 
 logging.basicConfig(level=logging.INFO)
 
@@ -124,8 +125,6 @@ class Test(TestCase):
         for file in (fna, gbk, gff):
             self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
 
-    def test_download_1708(self):
-        cleanup(get_paths(dir=DOWNLOAD_DIR, prefix='1708_'))
-        fna, gbk, gff = download_ncbi_fna_gbk_gff(assembly_name='GCA_020743785.1', out_dir=DOWNLOAD_DIR)
-        for file in (fna, gbk, gff):
-            self.assertTrue(os.path.isfile(file), f'Expected outfile does not exist: {file=}')
+    def test_download_and_rename_GCA_002994165(self):
+        # has no record IDs
+        download_ncbi_genome(assembly_name='GCA_002994165.1', new_locus_tag_prefix='33_', out_dir=DOWNLOAD_DIR)

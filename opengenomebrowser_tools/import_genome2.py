@@ -69,6 +69,25 @@ class ImportSettings2:
             f'reality: {self.settings.keys()}'
 
     @staticmethod
+    def _format_path(path: str, genome: str, organism: str, src: str = None) -> str:
+        if src is None:
+            return path.format(
+                genome=genome,
+                organism=organism,
+                assembly=genome.rsplit('.', 1)[0]
+            )
+        else:
+            basename = os.path.basename(src)
+            return path.format(
+                original_path=src,
+                basename=basename,
+                suffix=basename.rsplit('.', 1)[-1] if '.' in basename else '',
+                genome=genome,
+                organism=organism,
+                assembly=genome.rsplit('.', 1)[0]
+            )
+
+    @staticmethod
     def _copy(src: str, dst: str):
         if os.path.exists(dst):
             logging.warning(f'Overwriting: {src} -> {dst}')
@@ -86,14 +105,9 @@ class ImportSettings2:
             files = glob(from_)
             cls.check_expected(files, expected, from_)
             for src in files:
-                basename = os.path.basename(src)
-                rel_dst = to.format(
-                    original_path=src,
-                    suffix=basename.rsplit('.', 1)[-1] if '.' in basename else '',
-                    genome=genome,
-                    organism=organism,
-                    assembly=genome.rsplit('.', 1)[0]
-                )
+                if 'calls' in src:
+                    print('wait')
+                rel_dst = cls._format_path(to, genome, organism, src)
                 dst = os.path.join(target_dir, rel_dst)
                 if os.path.isdir(dst):
                     logging.warning(f'Overwriting directory: {src} >>{action}>> {rel_dst}')
@@ -105,16 +119,31 @@ class ImportSettings2:
                     logging.info(f'{src} >>{action}>> {rel_dst}')
                 cls._copy(src=src, dst=dst)
 
+    @classmethod
+    def link(cls, target_dir: str, genome: str, organism: str, action: dict):
+        from_ = cls._format_path(action['from'], genome, organism)
+        to = cls._format_path(action['to'], genome, organism)
+        expected = action.get('expected', True)
+        assert type(expected) is bool, f'Failed to execute link action: "expected" must be true or false! {action=}'
+
+        dst = os.path.join(target_dir, to)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        os.symlink(src=from_, dst=dst)
+        if expected:
+            assert os.path.exists(dst), f'Failed to execute link action: destination {dst=} does not exist! {action=}'
+
     def execute_actions(self, source_dir: str, target_dir: str, genome: str, organism: str) -> None:
         for action in self.settings['import_actions']:
             action_type = action['type']
             if action_type == 'copy':
                 self.copy(source_dir, target_dir, genome, organism, action)
+            elif action_type == 'link':
+                self.link(target_dir, genome, organism, action)
             else:
                 raise AssertionError(f'Could not execute action: type must be "copy". {action=}')
 
     @staticmethod
-    def check_expected(files: [str], expected: Union[None, bool, int], glob_pattern:str):
+    def check_expected(files: [str], expected: Union[None, bool, int], glob_pattern: str):
         if type(expected) is int:
             if len(files) != expected:
                 raise ImportException(f'Error: {files=} glob={glob_pattern}\n'
@@ -355,7 +384,8 @@ def import_genome2(
         genome: str = None,
         rename: bool = False,
         check_files: bool = True,
-        import_settings: str = None
+        import_settings: str = None,
+        pause: bool = False
 ):
     """
     Easily import files into OpenGenomeBrowser folder structure.
@@ -367,6 +397,7 @@ def import_genome2(
     :param rename: Locus tag prefixes must match the genome identifier. If this is not the case, this script can automatically rename relevant files.
     :param check_files: If true, check if locus tag prefixes match genome identifier.
     :param import_settings: Path to import settings file. Alternatively, set the environment variable OGB_IMPORT_SETTINGS.
+    :param pause: Wait after import_actions / before file_finder
     """
     import_dir = os.path.abspath(import_dir)
 
@@ -398,6 +429,9 @@ def import_genome2(
         if genome is None:
             genome = _genome
 
+    # genome names can consist of integers -.-
+    organism, genome = str(organism), str(genome)
+
     organism_dir = os.path.join(organisms_dir, organism)
     genome_dir = os.path.join(organism_dir, 'genomes', genome)
     assert not os.path.exists(genome_dir), f'Could not import {organism}:{genome}: {genome_dir=} already exists!'
@@ -407,6 +441,10 @@ def import_genome2(
     os.chdir(work_dir.name)
 
     import_settings.execute_actions(import_dir, work_dir.name, genome, organism)
+
+    if pause:
+        print(f'Files are prepared here: {work_dir.name}. Press enter to continue with import. Press Ctrl+Z to abort.')
+        input()
 
     fna: FastaFile = import_settings.find_file('fna', root_dir=work_dir.name, as_class=FastaFile)  # assembly
     gbk: GenBankFile = import_settings.find_file('gbk', root_dir=work_dir.name, as_class=GenBankFile)  # genbank
@@ -453,7 +491,7 @@ def import_genome2(
 
     # final movement
     os.makedirs(os.path.dirname(genome_dir), exist_ok=True)
-    shutil.copytree(src=work_dir.name, dst=genome_dir)
+    shutil.copytree(src=work_dir.name, dst=genome_dir, symlinks=True)
 
     os.chdir(_work_dir)
     work_dir.cleanup()

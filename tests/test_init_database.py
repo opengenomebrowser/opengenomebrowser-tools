@@ -16,7 +16,7 @@ def cleanup():
 
 
 class Test(TestCase):
-    def test_init_orthofinder(self):
+    def test_init_folder_structure(self):
         init_folder_structure(folder_structure_dir=FOLDER_STRUCTURE)
 
         for dir in [

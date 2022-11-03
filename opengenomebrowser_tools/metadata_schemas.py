@@ -28,7 +28,7 @@ organism_json_dummy = {
 }
 
 genome_json_schema = Schema({
-    'identifier': And(str, lambda x: all(char not in x for char in ' _:/\\')),
+    'identifier': And(str, lambda x: all(char not in x for char in ' :/\\')),
     'contaminated': bool,
     'old_identifier': Or(str, None),
     'isolation_date': Or(is_valid_date, None),

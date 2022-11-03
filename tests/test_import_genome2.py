@@ -79,12 +79,27 @@ class Test(TestCase):
             organism='FAM24234', genome='FAM24234-i1-2.1'
         )
 
+    def test_import_hatice_config(self):
+        import_genome(
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/Dog002_mouth-p1-1.1',
+            import_settings=f'{ROOT}/test-data/import-config-hatice-staph.json',
+            organism='Dog002_mouth', genome='Dog002_mouth-p1-1.1'
+        )
+
+    def test_import_hatice_ncbi(self):
+        import_genome(
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/117',
+            import_settings=f'{ROOT}/test-data/import-config-hatice-staph-ncbi.json',
+            organism='117', genome='117'
+        )
+
     def test_import_subdir_config(self):
         import_genome(
             folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/subdir',
             import_settings=f'{ROOT}/test-data/import-config-subdir2.json',
             organism='FAM24234', genome='FAM24234-i1-2.1'
         )
+
     def test_DSM22211(self):
         import_genome(
             folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/DSM22211-i1-1.1',
