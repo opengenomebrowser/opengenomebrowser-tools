@@ -192,7 +192,7 @@ export OGB_IMPORT_SETTINGS=/path/to/import_config.json
 ```text
 {
     "organism_template": {},                           # use this to add metadata to all imported organism.json files, e.g. {"restricted": true}
-    "genome_template": {},                             # use this to add metadata to all imported genome.json files, e.g. {"assembly_tool": "PGAP"}
+    "genome_template": {},                             # use this to add metadata to all imported genome.json files, e.g. {"assembly_tool": "SPAdes"}
     "path_transformer": {
         ".*\\.fna": "{genome}.{suffix}",               # all files that match the regex will end up in organisms/STRAIN/genomes/STRAIN.1/STRAIN.1.fna
         ".*\\.faa": "{genome}.{suffix}",
