@@ -145,7 +145,7 @@ Optional files:
 - `.XX`: custom annotation file (e.g. `EC`, `.GO`, etc.; any files with a suffix of two upper case letters are detected as custom annotations)
 - `_busco.txt`: BUSCO output file, content will be added to `genome.json`
 - `genome.json`: content will be added to final `genome.json`, may be as simple as `{"restricted": true}`
-- `organism.json`: content will be added to final `organism.json`, may be as simple as `{"assembly_tool": "PGAP"}`
+- `organism.json`: content will be added to final `organism.json`, may be as simple as `{"assembly_tool": "SPAdes"}`
 
 <details>
   <summary>Example result:</summary>

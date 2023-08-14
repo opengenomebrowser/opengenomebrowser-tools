@@ -443,7 +443,7 @@ def import_genome2(
     import_settings.execute_actions(import_dir, work_dir.name, genome, organism)
 
     if pause:
-        print(f'Files are prepared here: {work_dir.name}. Press enter to continue with import. Press Ctrl+Z to abort.')
+        print(f'Files are prepared here: {work_dir.name} Press enter to continue with import. Press Ctrl+C to abort.')
         input()
 
     fna: FastaFile = import_settings.find_file('fna', root_dir=work_dir.name, as_class=FastaFile)  # assembly
