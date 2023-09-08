@@ -1,3 +1,4 @@
+import os
 import logging
 
 from Bio import SeqIO, SeqRecord, SeqFeature
@@ -102,6 +103,15 @@ class GenBankFile(GenomeFile):
                 cds_tool_date=date_to_string(datetime.strptime(pgap_comment['Annotation Date'], '%m/%d/%Y %H:%M:%S')),
                 cds_tool_version=pgap_comment['Annotation Software revision']
             )
+        elif 'Bakta' in comment:
+            bakta_comment = rec.annotations['comment']
+            bakta_version = bakta_comment.split('Software: ',1)[1].split('\n',1)[0]
+            bakta_db_verson = bakta_comment.split('Database: ',1)[1].split('\n',1)[0].replace(', ', '')
+            genome_data.update(
+                cds_tool='Bakta',
+                cds_tool_date=date_to_string(datetime.strptime(rec.annotations['date'], '%d-%b-%Y')),  #08-SEP-2023
+                cds_tool_version=f'{bakta_version}:{bakta_db_verson}'
+            )
         else:
             raise AssertionError(f'Failed to discover annotation information from {self.path=}')
 
@@ -162,9 +172,11 @@ class GenBankFile(GenomeFile):
         if type(strain) is list and len(strain) == 1 and type(strain[0]) is str:
             strain = strain[0]
         else:
-            logging.warning(f'Could not read organism from .gbk file! {strain=}')
-            strain = input(f'Could not read organism from .gbk file! Please enter it manually and press enter:')
-            logging.warning(f'This organism name was manually chosen: {strain}')
+            strain = os.environ.get('STRAIN', None)
+            if strain is None:
+                logging.warning(f'Could not read organism from .gbk file! {strain=}')
+                strain = input(f'Could not read organism from .gbk file! Please enter it manually and press enter:')
+                logging.warning(f'This organism name was manually chosen: {strain}')
 
         locus_tag_prefix, gene_id = split_locus_tag(locus_tag[0])
         assert type(locus_tag_prefix) is str and type(strain) is str

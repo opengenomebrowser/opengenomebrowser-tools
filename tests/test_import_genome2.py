@@ -107,6 +107,13 @@ class Test(TestCase):
             organism='DSM22211', genome='DSM22211-i1-1.1'
         )
 
+    def test_bakta(self):
+        import_genome(
+            folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/bakta',
+            import_settings=f'{ROOT}/test-data/import-settings-bakta.json',
+            organism='thomas', genome='thomas-1.1'
+        )
+
     def test_import_ncbi(self):
         import_genome(folder_structure_dir=FOLDER_STRUCTURE, import_dir=f'{ROOT}/test-data/ncbi-convert',
                       organism='FAM3257', genome='FAM3257-NCBI.1', rename=True)
